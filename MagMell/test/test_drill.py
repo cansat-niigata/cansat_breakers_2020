@@ -29,7 +29,7 @@ class elevetor:
 		else:
 			self.gpio.setPWM(self.mb,dutycycle=speed)
 			self.gpio.toggleOff(self.ma)
-		print(self.deg)
+		
 
 	def stop(self):
 		self.gpio.toggleOff(self.ma)
@@ -46,4 +46,4 @@ class elevetor:
 			self.value = 0
 		self.previos_data = follow_data#値を保存
 		self.deg = 12*self.value#度数法に変換
-		return self.deg
+		print(self.deg)
