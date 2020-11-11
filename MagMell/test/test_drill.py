@@ -42,6 +42,7 @@ class elevetor:
 
 	def recData(self,gpio,level,tick):#本当はもっと軽い処理にしたいのでこの辺りは改良の余地ありか？
 		follow_data = '00'#初期化
+		print(gpio)
 		if gpio == self.ea:#どちらのピンに割り込みが入ったかで分岐
 			follow_data = '{0}{1}'.format('1',self.previos_data[1])
 		elif gpio == self.eb:
