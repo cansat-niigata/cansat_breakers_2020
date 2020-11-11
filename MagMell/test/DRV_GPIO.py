@@ -29,12 +29,14 @@ class Gpio:
 
 	def setInterrupt(self,gpionum,target,edge='FALLING'):
 		self.setPinIn(gpionum)
-		self.gpio.set_pull_up_down(gpionum,pigpio.PUD_UP)
 		if edge == 'FALLING':
+			self.gpio.set_pull_up_down(gpionum,pigpio.PUD_UP)
 			var = pigpio.FALLING_EDGE
 		elif edge == 'RISING':
+			self.gpio.set_pull_up_down(gpionum,pigpio.PUD_DOWN)
 			var = pigpio.RISING_EDGE
 		elif edge == 'EITHER':
+			self.gpio.set_pull_up_down(gpionum,pigpio.PUD_DOWN)
 			var = pigpio.EITHER_EDGE
 		else:
 			raise Exception('Invalid EDGE Value')
