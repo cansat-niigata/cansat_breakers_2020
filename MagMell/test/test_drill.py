@@ -31,9 +31,8 @@ class elevetor:
 			self.gpio.toggleOff(self.ma)
 		try:
 			while True:
-				print('deg:'self.deg)
-				print()
-				print('prev')
+				print('deg:',self.deg)
+				print('prev:',self.previos_data)
 		except KeyboardInterrupt:
 			self.stop()
 		
