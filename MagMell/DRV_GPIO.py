@@ -280,6 +280,7 @@ class Drill_TB67H450FNG:
 
 	previos_data = '00'#前回の値
 	value = 0
+	deg = 0
 
 	def __init__(self,pinElvA,pinElvB,pinDA,pinDB,pinEA,pinEB,rad=10,maxleng=100):
 		self.gpio = Gpio()
