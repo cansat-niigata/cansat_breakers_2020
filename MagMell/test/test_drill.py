@@ -30,7 +30,8 @@ class elevetor:
 			self.gpio.setPWM(self.mb,dutycycle=speed)
 			self.gpio.toggleOff(self.ma)
 		try:
-			print(self.deg)
+			while True:
+				print(self.deg)
 		except KeyboardInterrupt:
 			self.stop()
 		
