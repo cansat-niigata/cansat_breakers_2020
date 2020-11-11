@@ -31,7 +31,9 @@ class elevetor:
 			self.gpio.toggleOff(self.ma)
 		try:
 			while True:
-				print(self.deg)
+				print('deg:'self.deg)
+				print()
+				print('prev')
 		except KeyboardInterrupt:
 			self.stop()
 		
@@ -45,9 +47,11 @@ class elevetor:
 			follow_data = '{0}{1}'.format('1',self.previos_data[1])
 		elif gpio == self.eb:
 			follow_data = '{0}{1}'.format(self.previos_data[0],'1')
-		self.value += self.table_dict[self.previos_data][follow_data]#取得値を変換して足す
-		if self.value == -2:
-			self.value = 0
+		val = self.table_dict[self.previos_data][follow_data]
+		if val == -2:
+			val = 0
+		self.value += val#取得値を変換して足す
+		
 		self.previos_data = follow_data#値を保存
 		self.deg = 12*self.value#度数法に変換
 
