@@ -1,5 +1,5 @@
 from LibIMU import LibIMU
-from DRV_GPIO import MotorControl,Servo,Drill,LED
+from DRV_GPIO import MotorControl_TB67H450FNG,Drill_TB67H450FNG,LED
 from DRV_GPS_Serial import Gps_Serial
 from DRV_Camera import Camera
 import numpy
@@ -46,8 +46,8 @@ class RunBack:
 		self.TURN_Coefficient = conf['config']['control']['spec']['turn']
 		self.speed = conf['config']['control']['spec']['speed']
 		self.Kp = conf['config']['control']['spec']['Kp']
-		self.Ti = conf['conf']['control']['spec']['Ti']
-		self.Td = conf['conf']['control']['spec']['Td']
+		self.Ki = conf['conf']['control']['spec']['Ki']
+		self.Kd = conf['conf']['control']['spec']['Kd']
 		self.width = conf['config']['control']['spec']['width']
 		self.diameter = conf['config']['control']['spec']['diameter']
 		self.tagRPS = self.speed/(self.diameter*numpy.pi)
@@ -83,16 +83,16 @@ class RunBack:
 		self.DRV_LED = LED(self.LED1,self.LED2)
 		self.DRV_LED.startBlink(alt=False,interval=5.0)
 		self.transmit('DRY:LED. GPIONum:'+str(self.LED1)+','+str(self.LED2))
-		self.DRV_Mortor = MotorControl(self.MR1,self.MR2,self.MR_VREF,self.ML1,self.ML2,self.ML_VREF)
+		self.DRV_Mortor = MotorControl_TB67H450FNG(self.MR1,self.MR2,self.ML1,self.ML2)
 		self.transmit('RDY:Mortor. GPIONum: MR1:'+str(self.MR1)+',MR2:'+str(self.MR2)+',ML1:'+str(self.ML1)+',ML2:'+str(self.ML2))
-		self.DRV_Servo = Servo(self.SERVO)
-		self.transmit('RDY:Servo. GPIONum:'+str(self.SERVO))
+		#self.DRV_Servo = Servo(self.SERVO)
+		#self.transmit('RDY:Servo. GPIONum:'+str(self.SERVO))
 		self.DRV_Camera = Camera()
 		self.transmit('RDY:Camera.')
 		self.transmit('CAUTION!:calibrating IMU. DONT TOUCH ME.')
 		self.IMU = LibIMU()
 		self.transmit('RDY:IMU. GPIONum:2(SDA),3(SCL)')
-		self.DRV_Drill = Drill(self.MD1,self.MD2,self.MDVREF,self.MD3,self.MD4,self.ED1,self.ED2,self.drill_gear_rad,self.drill_leng)
+		self.DRV_Drill = Drill_TB67H450FNG(self.MD1,self.MD2,self.MD3,self.MD4,self.ED1,self.ED2,self.drill_gear_rad,self.drill_leng)
 		self.transmit('RDY:Drill.')
 		self.transmit('Mode:GPS')
 		self.transmit('Initialized.')
@@ -129,11 +129,11 @@ class RunBack:
 		self.transmit('Falling!')
 		return True
 
-	def purgeByServo(self):
+	"""def purgeByServo(self):
 		#パラシュートをパージ
 		self.transmit('Purging...by Servo')
 		self.DRV_Servo.swing()
-		self.DRV_Servo.terminate()
+		self.DRV_Servo.terminate()"""
 
 	def Drill(self,gettime):
 		self.transmit('Drill Mode Online.')
@@ -229,15 +229,25 @@ class RunBack:
 		}
 		return res_dict
 
-	def fixPWM(self):
+	def doPID(self):
 		err = self.getRPS()
 		eR = err['R'] - self.tagRPS
 		eL = err['L'] - self.tagRPS
-		PWM_R = self.Kp*(eR+eR*self.IMU.sample_time/self.Ti+eR*self.Td/self.IMU.sample_time)
-		PWM_L = self.Kp*(eL+eL*self.IMU.sample_time/self.Ti+eL*self.Td/self.IMU.sample_time)
+		self.sum_eR += eR*self.IMU.sample_time
+		self.sum_eL += eL*self.IMU.sample_time
+		PWM_R = self.Kp*eR + self.Ki*self.sum_eR + self.Kd*(eR - self.prev_eR)
+		PWM_L = self.Kp*eL + self.Ki*self.sum_eL + self.Kd*(eL - self.prev_eL)
 		self.DRV_Mortor.setSpeed(PWM_R,PWM_L)
+		self.prev_eR = eR
+		self.prev_eL = eL
 
-	def moveForwardv2(self,movetime,maxdeg=5):
+	def resetPID(self):
+		self.prev_eR = 0
+		self.prev_eL = 0
+		self.sum_eR = 0
+		self.sum_eL = 0
+
+	def moveForwardv2(self,movetime,maxdeg=10):
 		#直進する、進路がずれた時は旋回して修正する
 		#エンコーダーは禁句
 		MoveTime = movetime
@@ -246,7 +256,7 @@ class RunBack:
 		moveStart = time.time()
 		self.DRV_Mortor.moveForward_St()
 		while (time.time() - moveStart) < MoveTime:
-			self.fixPWM()
+			self.doPID()
 			if self.IMU.EA_YAW > maxdeg:
 				lossTime = time.time()
 				self.DRV_Mortor.turnLeft_St()
@@ -267,6 +277,7 @@ class RunBack:
 		self.DRV_GPS_Ser.stopMark()
 		self.DRV_Mortor.stopMotor()
 		self.IMU.killThread()
+		self.resetPID()
 		if self.IMU.ACC_VX < 1:
 			self.escapeFromStack()
 
@@ -520,7 +531,7 @@ class RunBack:
 	def terminate(self):
 		self.DRV_LED.terminate()
 		self.DRV_Mortor.terminate()
-		self.DRV_Servo.terminate()
+		#self.DRV_Servo.terminate()
 		self.DRV_GPS_Ser.stopGps()
 		self.DRV_GPS_Ser.stopSerial()
 
