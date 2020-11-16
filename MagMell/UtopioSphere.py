@@ -1,5 +1,5 @@
 from LibIMU import LibIMU
-from DRV_GPIO import MotorControl_TB67H450FNG,Drill_TB67H450FNG,LED
+from DRV_GPIO import MotorControl_TB67H450FNG,Drill_TB67H450FNG_knocked_out,LED
 from DRV_GPS_Serial import Gps_Serial
 from DRV_Camera import Camera
 import numpy
@@ -20,37 +20,37 @@ class RunBack:
 		#Mortor
 		self.MR1 = conf['config']['pin']['Mortor']['MR1']
 		self.MR2 = conf['config']['pin']['Mortor']['MR2']
-		self.MR_VREF = conf['config']['pin']['Mortor']['MR_VREF']
+		#self.MR_VREF = conf['config']['pin']['Mortor']['MR_VREF']
 		self.ML1 = conf['config']['pin']['Mortor']['ML1']
 		self.ML2 = conf['config']['pin']['Mortor']['ML2']
-		self.ML_VREF = conf['config']['pin']['Mortor']['ML_VREF']
+		#self.ML_VREF = conf['config']['pin']['Mortor']['ML_VREF']
 		#Servo
-		self.SERVO = conf['config']['pin']['Servo']
+		#self.SERVO = conf['config']['pin']['Servo']
 		#Drill(Spec)
 		self.drill_leng = conf['config']['control']['spec']['drill_updown_length']
 		self.drill_gear_rad = conf['config']['control']['spec']['drill_gear_rad']
 		#Mortor(drill_Elevator)
 		self.MD1 = conf['config']['pin']['Drill']['MD1']
 		self.MD2 = conf['config']['pin']['Drill']['MD2']
-		self.MDVREF = conf['config']['pin']['Drill']['MDVREF']
+		#self.MDVREF = conf['config']['pin']['Drill']['MDVREF']
 		#Motor(drill)
 		self.MD3 = conf['config']['pin']['Drill']['MD3']
 		self.MD4 = conf['config']['pin']['Drill']['MD4']
 		#Encoder(drill)
-		self.ED1 = conf['config']['pin']['Drill']['ED1']
-		self.ED2 = conf['config']['pin']['Drill']['ED2']
+		#self.ED1 = conf['config']['pin']['Drill']['ED1']
+		#self.ED2 = conf['config']['pin']['Drill']['ED2']
 		#LED
 		self.LED1 = conf['config']['pin']['LED']['LED1']
 		self.LED2 = conf['config']['pin']['LED']['LED2']
 		#etc
 		self.TURN_Coefficient = conf['config']['control']['spec']['turn']
 		self.speed = conf['config']['control']['spec']['speed']
-		self.Kp = conf['config']['control']['spec']['Kp']
-		self.Ki = conf['conf']['control']['spec']['Ki']
-		self.Kd = conf['conf']['control']['spec']['Kd']
+		#self.Kp = conf['config']['control']['spec']['Kp']
+		#self.Ki = conf['conf']['control']['spec']['Ki']
+		#self.Kd = conf['conf']['control']['spec']['Kd']
 		self.width = conf['config']['control']['spec']['width']
 		self.diameter = conf['config']['control']['spec']['diameter']
-		self.tagRPS = self.speed/(self.diameter*numpy.pi)
+		#self.tagRPS = self.speed/(self.diameter*numpy.pi)
 
 		self.roll_coe1 = self.width/(2*self.diameter)
 		self.roll_coe2 = 2*numpy.pi
@@ -92,7 +92,7 @@ class RunBack:
 		self.transmit('CAUTION!:calibrating IMU. DONT TOUCH ME.')
 		self.IMU = LibIMU()
 		self.transmit('RDY:IMU. GPIONum:2(SDA),3(SCL)')
-		self.DRV_Drill = Drill_TB67H450FNG(self.MD1,self.MD2,self.MD3,self.MD4,self.ED1,self.ED2,self.drill_gear_rad,self.drill_leng)
+		self.DRV_Drill = Drill_TB67H450FNG_knocked_out(self.MD1,self.MD2,self.MD3,self.MD4)
 		self.transmit('RDY:Drill.')
 		self.transmit('Mode:GPS')
 		self.transmit('Initialized.')
@@ -216,7 +216,7 @@ class RunBack:
 		if  self.IMU.ACC_VX < 1:
 			self.escapeFromStack()
 
-	def getRPS(self):
+	"""def getRPS(self):
 		ang_vec_avr = numpy.rad2deg(self.IMU.ACC_VX/self.diameter)
 		ang_vec_diff = self.IMU.YAW_speed*self.roll_coe1
 		ang_vec_left = ang_vec_diff + ang_vec_avr
@@ -279,7 +279,7 @@ class RunBack:
 		self.IMU.killThread()
 		self.resetPID()
 		if self.IMU.ACC_VX < 1:
-			self.escapeFromStack()
+			self.escapeFromStack()"""
 
 	def getLatLng(self,fromLine=False):
 		self.LatLngB = self.LatLngN

@@ -271,6 +271,42 @@ class Servo:
 	def terminate(self):
 		self.gpio.terminate()
 
+class Drill_TB67H450FNG_knocked_out:
+	def __init__(self,pinElvA,pinElvB,pinDA,pinDB):
+		self.gpio = Gpio()
+		self.PELA = pinElvA
+		self.PELB = pinElvB
+		self.DA = pinDA
+		self.DB = pinDB
+		self.motor = MotorControl_TB67H450FNG(self.PELA,self.PELB,self.DA,self.DB,R_speed=255)
+
+	def upDrill(self,time=1,speed=255):
+		self.motor.R_speed = speed
+		self.motor.spinMotor('20')
+		time.sleep(time)
+		self.motor.stopMotor()
+
+	def downDrill(self,leng=None,speed=255):
+		self.motor.R_speed = speed
+		self.motor.spinMotor('10')
+		time.sleep(time)
+		self.motor.stopMotor()
+
+	def spinDrill(self,invert=False):
+		if invert == True:
+			self.gpio.toggleOff(self.DA)
+			self.gpio.toggleOn(self.DB)
+		else:
+			self.gpio.toggleOn(self.DA)
+			self.gpio.toggleOff(self.DB)
+
+	def stopDrill(self):
+		self.gpio.toggleOff(self.DA)
+		self.gpio.toggleOff(self.DB)
+
+	def terminate(self):
+		self.gpio.terminate()
+
 class Drill_TB67H450FNG:
 
 	table_dict = {                          #データ変換テーブル
@@ -327,7 +363,6 @@ class Drill_TB67H450FNG:
 			if (val >= leng):
 				self.motor.stopMotor()
 				break 
-
 
 	def spinDrill(self,invert=False):
 		if invert == True:
