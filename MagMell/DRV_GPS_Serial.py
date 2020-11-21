@@ -16,7 +16,7 @@ class Gps_Serial:
 
     def __init__(self,ser='/dev/serial0',baudrate=19200,timeout=10,timezone=9,fmt='dd',log='./log/log.txt'):
         self.s = serial.Serial(ser,baudrate=baudrate,timeout=timeout)
-        self.s.write('ECIO\r\n')
+        self.s.write('ECIO\r\n').encode('ascii')
         self.gps = micropyGPS.MicropyGPS(timezone,fmt)
         self.gps.start_logging(log)
 
@@ -34,8 +34,8 @@ class Gps_Serial:
         self.s.readline()#1回目は読み捨て
         while self.threadflag:
             sentence = self.s.readline().decode('utf-8')       
-            #if(sentence[0] != '$'):#←これいる？
-            #    continue
+            if(sentence[0] != '$'):#←これいる？
+                continue
             for x in sentence:
                 self.gps.update(x)
                 self.timestamp = time.time()

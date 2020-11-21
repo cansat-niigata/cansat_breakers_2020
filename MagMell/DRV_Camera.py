@@ -28,7 +28,7 @@ class Camera:
         time.sleep(0.2)
         return True
 
-    def detectTarget(self):
+    """def detectTarget(self):
         img = cv2.imread(self.filename,cv2.COLOR_BGR2GRAY)
         target = self.cascade.detectMultiScale(img)
         length = len(target)
@@ -43,9 +43,9 @@ class Camera:
         average /= len(target)
         self.average = average
         cv2.imwrite(self.outfilename,img)
-        return average
+        return average"""
 
-    def detectTergetv2(self):
+    def detectTargetv2(self):
         margin_x = 80
         margin_y = 80
 

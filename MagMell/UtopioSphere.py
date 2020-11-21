@@ -386,7 +386,7 @@ class RunBack:
 			self.transmit('Taking a Picture...')
 			self.DRV_Camera.getImage()
 			self.transmit('Detecting...')
-			var = self.DRV_Camera.detectTarget()
+			var = self.DRV_Camera.detectTargetv2()
 			if var == False:
 				self.getLatLngv2()
 				self.face2Goal()

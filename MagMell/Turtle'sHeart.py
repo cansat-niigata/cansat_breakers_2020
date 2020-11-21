@@ -27,12 +27,12 @@ def RunBack(lat,lng,Range,Goal_Range,skipdrop=False,skippurge=False,disable_dril
     if skipdrop == False:
         DRV.waitDrop()
         time.sleep(10)
-    if skippurge == False:
-        DRV.purgeByServo()
+    #if skippurge == False:
+    #    DRV.purgeByServo()
     DRV.getLatLngv2(True)
     DRV.moveForward(1)
-    if disable_drill == False:
-        DRV.Drill(10)
+    #if disable_drill == False:
+    #    DRV.Drill(10)
     DRV.getLatLngv2(True)
     DRV.face2Goal()
     while True:
