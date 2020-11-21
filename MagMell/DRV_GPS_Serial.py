@@ -14,13 +14,14 @@ class Gps_Serial:
     lognum = 0
     timestamp = 0
 
-    def __init__(self,ser='/dev/serial0',baudrate=9600,timeout=10,timezone=9,fmt='dd',log='./log/log.txt'):
+    def __init__(self,ser='/dev/serial0',baudrate=19200,timeout=10,timezone=9,fmt='dd',log='./log/log.txt'):
         self.s = serial.Serial(ser,baudrate=baudrate,timeout=timeout)
+        self.s.write('ECIO\r\n')
         self.gps = micropyGPS.MicropyGPS(timezone,fmt)
         self.gps.start_logging(log)
 
-    def transmitData(self,var='can you hear me?'):
-        payload = (str(var)+('\n')).encode('utf-8')
+    def transmitData(self,var='can you hear me?',char_code='ascii'):
+        payload = ('TXDA'+str(var)+'\r\n').encode(char_code)
         self.s.write(payload)
 
     def stopSerial(self):
