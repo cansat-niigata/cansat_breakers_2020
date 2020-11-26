@@ -89,6 +89,11 @@ class MotorControl_TB67H450FNG:
 		elif(mot[1]=='0'):
 			self.gpio.toggleOff(self.L1)
 			self.gpio.toggleOff(self.L2)
+
+	def spinMotor_time(self,mot='00',time):
+		self.spinMotor(mot)
+		time.sleep(time)
+		self.spinMotor('00')
 			
 	def stopMotor(self):
 		self.spinMotor('00')
