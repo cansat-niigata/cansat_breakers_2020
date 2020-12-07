@@ -1,8 +1,8 @@
 #include "log.h"
 using namespace DRV;
 /*namespace DRV{
-    class Log{
-	    private:
+	class Log{
+		private:
 			std::chrono::system_clock::time_point log_chrono;
 			std::string note;
 		public:
@@ -10,8 +10,8 @@ using namespace DRV;
 			Log(const std::string &note);
 			~Log();
 
-            double getDurationfrom(Log anotherLog);
-            static double getDurationbetween(Log Log1,Log Log2);
+			double getDurationfrom(Log anotherLog);
+			static double getDurationbetween(Log Log1,Log Log2);
 	};
 }*/
 
