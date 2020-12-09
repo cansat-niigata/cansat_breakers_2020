@@ -4,7 +4,7 @@
 
 #include <string>
 #include <iostream>
-
+#include <chrono>
 #include "pigpio.h"
 
 class DRV{
@@ -29,6 +29,8 @@ class DRV{
             bool print(char* message);
             char* read();
     };
+
+
 
 	class GPIO{
 		private:
@@ -68,7 +70,7 @@ class DRV{
 			void setInterrupt(unsigned int PinNum,gpioAlertFunc_t Function);
 	};
 
-	class Motor_1wire{
+	/*class Motor_1wire{
 		private:
 			const unsigned int pin;
 			unsigned int PWM_Frequency;
@@ -101,6 +103,6 @@ class DRV{
 			void spinDuring(double Time,unsigned int Speed=128);
 			void stop(void);
 			void setSpeed(unsigned int Speed=128);
-	};
+	};*/
 
 };

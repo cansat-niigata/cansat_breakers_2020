@@ -1,5 +1,5 @@
 #include "sl0t.h"
-#include <chrono>
+
 
 //constructer
 DRV::GPIO::GPIO(void)
@@ -23,7 +23,7 @@ int DRV::GPIO::getInitValue(void){
 	return initValue;
 }
 
-void DRV::GPIO::initializeAllGPIO::clearPin(unsigned int PinNum){
+void DRV::GPIO::clearPin(unsigned int PinNum){
 	this->toggleOff(PinNum);
 	this->setPinIn(PinNum);
 	this->setPinPullDown(PinNum);
@@ -94,7 +94,7 @@ void DRV::GPIO::setInterrupt(unsigned int PinNum,gpioAlertFunc_t Function){
 }
 
 
-
+/*
 DRV::Motor_1wire::Motor_1wire(unsigned int PinNum,unsigned int Frequency,unsigned int Range,unsigned int Dutycycle)
 :pin(PinNum),PWM_Frequency(Frequency),PWM_Range(Range),PWM_Dutycycle(Dutycycle),status(false){
 	DRV::GPIO::toggleOff(PinNum);
@@ -138,3 +138,4 @@ void DRV::Motor_1wire::setSpeed(unsigned int Speed){
 		this->spin();
 	}
 }
+*/
