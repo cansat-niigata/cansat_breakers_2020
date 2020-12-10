@@ -35,8 +35,8 @@ Log::Log(void):log_chrono(std::chrono::system_clock::now()){
 Log::~Log(void){
 }
 
-Log Log::waitFor(double miliseconds){
-	usleep(miliseconds*1000);
+Log Log::waitFor(unsigned int milliseconds){
+	usleep(milliseconds*1000);
 	return Log();
 }
 
@@ -46,6 +46,24 @@ std::time_t Log::toUnixTime(void){
 
 double Log::getDurationfrom(Log anotherLog){
 	return std::chrono::duration_cast<std::chrono::milliseconds>(this->log_chrono - anotherLog.log_chrono).count();
+}
+
+double Log::getDurationfrom(Log anotherLog,unsigned int mode){
+	if (mode == cast_micro){
+		return std::chrono::duration_cast<std::chrono::microseconds>(this->log_chrono - anotherLog.log_chrono).count();
+	}else if (mode == cast_micro){
+		return std::chrono::duration_cast<std::chrono::microseconds>(this->log_chrono - anotherLog.log_chrono).count();
+	}else if (mode == cast_milli){
+		return std::chrono::duration_cast<std::chrono::milliseconds>(this->log_chrono - anotherLog.log_chrono).count();
+	}else if (mode == cast_sec){
+		return std::chrono::duration_cast<std::chrono::seconds>(this->log_chrono - anotherLog.log_chrono).count();
+	}else if (mode == cast_min){
+		return std::chrono::duration_cast<std::chrono::minutes>(this->log_chrono - anotherLog.log_chrono).count();
+	}else if (mode == cast_hours){
+		return std::chrono::duration_cast<std::chrono::hours>(this->log_chrono - anotherLog.log_chrono).count();
+	}else{
+		return std::chrono::duration_cast<std::chrono::milliseconds>(this->log_chrono - anotherLog.log_chrono).count();
+	}
 }
 
 double Log::getDurationbetween(Log Log1,Log Log2){
@@ -91,8 +109,8 @@ Note::Note(const char* note,bool noteDate):log_chrono(std::chrono::system_clock:
 Note::~Note(void){
 }
 
-Note Note::waitFor(double miliseconds){
-	usleep(miliseconds*1000);
+Note Note::waitFor(double milliseconds){
+	usleep(milliseconds*1000);
 	return Note("sleeped.");
 }
 

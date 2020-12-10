@@ -54,9 +54,9 @@ int Gpio::toggleOff(unsigned int gpio){
     return gpioWrite(gpio,PI_LOW);
 }
 //			static int setOffTimer(unsigned int gpio,unsigned int miliseconds);
-int Gpio::setOffTimer(unsigned int gpio,double miliseconds){
+int Gpio::setOffTimer(unsigned int gpio,double milliseconds){
     toggleOn(gpio);
-    Log().waitFor(miliseconds);
+    usleep(milliseconds*1000);
     toggleOff(gpio);
 }
 //			static bool readPin(unsigned int gpio);
@@ -115,23 +115,81 @@ std::string Gpio::readSerial(unsigned int openedSerial,unsigned int count){
     serRead(openedSerial,buf,count);
     return std::string(buf);
 }
+
+const char* Gpio::readSerial(unsigned int openedSerial,bool return_char){
+    if (return_char == true){
+        char* buf;
+        unsigned int count = getDataAvailable(openedSerial);
+        serRead(openedSerial,buf,count);
+        return const_cast<const char*>(buf);
+    }else{
+        return "null.";
+    }
+}
 //			static int sendSerial(unsigned int openedSerial,const char* message);
 int Gpio::sendSerial(unsigned int openedSerial,const char* message){
     return serWrite(openedSerial,const_cast<char*>(message),strlen(message)+1);
 }
 //			static int sendSerial(unsigned int openedSerial,std::string message);
-
+int Gpio::sendSerial(unsigned int openedSerial,std::string message){
+    const char* msg = message.c_str();
+    return serWrite(openedSerial,const_cast<char*>(msg),strlen(msg));
+}
 //			static int openSoftwareSerial2read(unsigned int gpio,unsigned int baudrate,unsigned int datebits,bool invert=false);
+int Gpio::openSoftwareSerial2read(unsigned int gpio,unsigned int baudrate,unsigned int databits,bool invert=false){
+    int res;
+    res = gpioSerialReadOpen(gpio,baudrate,databits);
+    if (invert){
+        gpioSerialReadInvert(gpio,PI_BB_SER_INVERT);
+    }
+
+    return res; 
+}
 //			static int closeSoftwareSerial(unsigned int gpio);
+int Gpio::closeSoftwareSerial(unsigned int gpio){
+    return gpioSerialReadClose(gpio);
+}
+
+int invertSoftwareSerial(unsigned int gpio){
+    return gpioSerialReadInvert(gpio,PI_BB_SER_INVERT);
+}
+
+int normalSoftwareSerial(unsigned int gpio){
+    return gpioSerialReadInvert(gpio,PI_BB_SER_NORMAL);
+}
+
 //			static std::string readSoftwareSerial(unsigned int gpio);
-
+std::string Gpio::readSoftwareSerial(unsigned int gpio){
+    char* buf;
+    gpioSerialRead(gpio,buf,8);
+    return std::string(buf);
+}
 //			static int openI2C(unsigned int i2cbus,unsigned int address);
+int Gpio::openI2C(unsigned int i2cbus,unsigned int address){
+    return i2cOpen(i2cbus,address,0);
+}
 //			static int closeI2C(unsigned int openedbus);
+int Gpio::closeI2C(unsigned int openedbus){
+    return i2cClose(openedbus);
+}
 //			static int writeI2CByte(unsigned int openedbus,unsigned int sendbyte);
+int Gpio::writeI2CByte(unsigned int openedbus,unsigned int sendbyte){
+    return i2cWriteByte(openedbus,sendbyte);
+}
 //			static int readI2CByte(unsigned int openedbus,unsigned int readbyte);
+int Gpio::readI2CByte(unsigned int openedbus){
+    return i2cReadByte(openedbus);
+}
 //			static int writeI2CBlockData(unsigned int openedbus,unsigned int _register,char* buffer);
+int Gpio::writeI2CBlockData(unsigned int openedbus,unsigned int _register,char* buffer,unsigned int count){
+    return i2cWriteBlockData(openedbus,_register,buffer,count); 
+}
 //			static int* readI2CBlockData(unsigned int openedbus,unsigned int _register);
-
+const char* Gpio::readI2CBlockData(unsigned int openedbus,unsigned int _register,unsigned int count){
+    char* buf;
+    i2cReadI2CBlockData(openedbus,_register,buf,count);
+    return const_cast<char*>(buf);
+}
 
 //	};
 //}

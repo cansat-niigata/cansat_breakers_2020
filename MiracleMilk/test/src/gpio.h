@@ -2,7 +2,8 @@
 	#define GPIO_H
 #endif
 
-#include "log.h"
+#include <chrono>
+#include <unistd.h>
 #include <string>
 #include <string.h>
 #include <pigpio.h>
@@ -30,7 +31,7 @@ namespace drv{
 	
 			static int toggleOn(unsigned int gpio);
 			static int toggleOff(unsigned int gpio);
-			static int setOffTimer(unsigned int gpio,double miliseconds);
+			static int setOffTimer(unsigned int gpio,double milliseconds);
 
 			static bool readPin(unsigned int gpio);
 
@@ -44,19 +45,22 @@ namespace drv{
 			static int getDataAvailable(unsigned int openedSerial);
 			static std::string readSerial(unsigned int openedSerial);
 			static std::string readSerial(unsigned int openedSerial,unsigned int count=1);
+			static const char* readSerial(unsigned int openedSerial,bool return_char);
 			static int sendSerial(unsigned int openedSerial,const char* message);
 			static int sendSerial(unsigned int openedSerial,std::string message);
 
 			static int openSoftwareSerial2read(unsigned int gpio,unsigned int baudrate,unsigned int datebits,bool invert=false);
 			static int closeSoftwareSerial(unsigned int gpio);
+			static int invertSoftwareSerial(unsigned int gpio);
+			static int normalSoftwareSerial(unsigned int gpio);
 			static std::string readSoftwareSerial(unsigned int gpio);
 
 			static int openI2C(unsigned int i2cbus,unsigned int address);
 			static int closeI2C(unsigned int openedbus);
 			static int writeI2CByte(unsigned int openedbus,unsigned int sendbyte);
-			static int readI2CByte(unsigned int openedbus,unsigned int readbyte);
-			static int writeI2CBlockData(unsigned int openedbus,unsigned int _register,char* buffer);
-			static int* readI2CBlockData(unsigned int openedbus,unsigned int _register);
+			static int readI2CByte(unsigned int openedbus);
+			static int writeI2CBlockData(unsigned int openedbus,unsigned int _register,char* buffer,unsigned int count=1);
+			static const char* readI2CBlockData(unsigned int openedbus,unsigned int _register,unsigned int count=1);
 
 
 	};
