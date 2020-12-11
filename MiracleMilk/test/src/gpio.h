@@ -9,6 +9,9 @@
 #include <pigpio.h>
 
 namespace drv{
+
+	//typedef unsigned char* byte;
+
     class Gpio{
 
 		public:

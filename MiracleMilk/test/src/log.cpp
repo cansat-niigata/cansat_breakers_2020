@@ -106,6 +106,28 @@ Note::Note(const char* note,bool noteDate):log_chrono(std::chrono::system_clock:
 	}
 }
 
+Note::Note(int note,bool noteDate):log_chrono(std::chrono::system_clock::now()){
+	if (noteDate == true){
+		char date[30];
+		std::time_t now = std::chrono::system_clock::to_time_t(log_chrono);
+		std::strftime(date,sizeof(date),"%Y/%m/%d %a %H:%M:%S : ",std::localtime(&now));
+		this->note = std::string(date) + std::string(std::to_string(note));
+	}else{
+		this->note = std::string(std::to_string(note));
+	}
+}
+
+Note::Note(double note,bool noteDate):log_chrono(std::chrono::system_clock::now()){
+	if (noteDate == true){
+		char date[30];
+		std::time_t now = std::chrono::system_clock::to_time_t(log_chrono);
+		std::strftime(date,sizeof(date),"%Y/%m/%d %a %H:%M:%S : ",std::localtime(&now));
+		this->note = std::string(date) + std::string(std::to_string(note));
+	}else{
+		this->note = std::string(std::to_string(note));
+	}
+}
+
 Note::~Note(void){
 }
 
@@ -116,4 +138,38 @@ Note Note::waitFor(double milliseconds){
 
 std::string Note::getNote(void){
 	return this->note;
+}
+
+Notes::Notes(void):length(0),logfile(nullptr){
+}
+
+Notes::Notes(const std::string &logfile):length(0),logfile(logfile.c_str()){
+}
+
+Notes::Notes(const char* logfile):length(0),logfile(logfile){
+}
+
+Notes::~Notes(void){
+}
+
+void Notes::setLogFile(const std::string &logfile){
+	this->logfile = logfile.c_str();
+}
+
+void Notes::setLogFile(const char* logfile){
+	this->logfile = logfile;
+}
+
+void Notes::append(Note note){
+	length++;
+	Note* notes_ = new Note[length];
+	if (length == 1){
+		notes_[0] = note;
+	}else{
+		for (int i=0;i < length - 1 ;i++){
+			notes_[i] = this->notes[i];
+		}
+		notes_[length-1] = note;
+	}
+	this->notes = notes_;
 }

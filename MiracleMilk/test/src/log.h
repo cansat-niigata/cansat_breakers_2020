@@ -1,10 +1,11 @@
 #ifndef LOG_H
-	#define LOG_H
+#define LOG_H
 #endif
 	
 #include <chrono>
 #include <string>
 #include <unistd.h>
+#include <stdlib.h>
 
 #define cast_nano 0 
 #define cast_micro 1
@@ -37,9 +38,29 @@ namespace drv{
 			Note(void);
 			Note(const std::string &note,bool noteDate = false);
 			Note(const char* note,bool noteDate = false);
+			Note(const int note,bool noteDate = false);
+			Note(const double note,bool noteDate = false);
 			~Note(void);
 
 			Note waitFor(double milliseconds);
 			std::string getNote(void);
+	};
+
+	class Notes{
+		private:
+			unsigned int length;
+			Note* notes;
+			const char* logfile;
+		public:
+			Notes(void);
+			Notes(const std::string &logfile);
+			Notes(const char* logfile);
+
+			void setLogFile(const std::string &logfile);
+			void setLogFile(const char* logfile);
+
+			bool dumpThis(void);
+			void append(Note note);
+		
 	};
 }
