@@ -58,44 +58,71 @@ void Motor_1wire::setSpeed(unsigned int Speed){
 			void setSpeed(unsigned int Speed=128);
 	};*/
 
-Motor::Motor(unsigned int pinNum1,unsigned int PinNum2,unsigned int Frequency,unsigned int Range,unsigned int Dutycycle,const char* file="./log/motors.txt")
-:pinA(pinNum1),pinB(PinNum2),PWM_Frequency(Frequency),PWM_Range(Range),PWM_Dutycycle(Dutycycle){
+Motor::Motor(const char* name,unsigned int pinNum1,unsigned int PinNum2,unsigned int Frequency,unsigned int Range,unsigned int Dutycycle,const char* file)
+:pinA(pinNum1),pinB(PinNum2),PWM_Frequency(Frequency),PWM_Range(Range),PWM_Dutycycle(Dutycycle),sts(STS_MOTOR_S){
     notes = Notes(file);
     Gpio::setPinOut(pinA);
     Gpio::setPinOut(pinB);
 }
 
 Motor::~Motor(void){
+	notes.append(Note("Motor:END."));
+	dumpFile();
 }
 
 void Motor::spin(bool invert){
+	notes.append(Note("Motor:ON"));
     int* res;
     int res2;
     if (invert == true){
         res = Gpio::setPWM(pinB,PWM_Dutycycle,PWM_Range,PWM_Frequency);
         res2 = Gpio::toggleOff(pinA);
+		sts = STS_MOTOR_B;
     }else{
         res = Gpio::setPWM(pinA,PWM_Dutycycle,PWM_Range,PWM_Frequency);
         res2 = Gpio::toggleOff(pinB);
+		sts = STS_MOTOR_F;
     }
 
-    notes.append(Note(res[0]));
-    notes.append(Note(res[1]));
-    notes.append(Note(res[2]));
-    notes.append(Note(res2));
+    notes.append(checkStatus(res[0]));
+    notes.append(checkStatus(res[1]));
+    notes.append(checkStatus(res[2]));
+    notes.append(checkStatus(res2));
 }
 
 void Motor::stop(void){
-	notes.append(Note(Gpio::toggleOff(pinA)));
-	notes.append(Note(Gpio::toggleOff(pinB)));
+	notes.append(checkStatus(Gpio::toggleOff(pinA)));
+	notes.append(checkStatus(Gpio::toggleOff(pinB)));
+	sts = STS_MOTOR_S;
+	notes.append(Note("Motor:OFF"));
 }
 
 void Motor::spinDuring(double Time,unsigned int Speed,bool invert=false){
+	if (invert){
+		sts = STS_MOTOR_B;
+	}else{
+		sts = STS_MOTOR_F;
+	}
     spin(invert);
 	Log().waitFor(Time);
 	stop();
+	sts = STS_MOTOR_S;
 }
 
 void Motor::setSpeed(unsigned int Speed){
-	
+	PWM_Dutycycle = Speed;
+	notes.append(Note(std::string("dutycycle changed:")+std::to_string(Speed)));
+	if (sts == STS_MOTOR_F){
+		spin();
+	}else if (sts == STS_MOTOR_B){
+		spin(true);
+	}
+}
+
+Note Motor::checkStatus(int res){
+	return Note(Gpio::checkThis(res));
+}
+
+void Motor::dumpFile(void){
+	notes.dumpUpdated();
 }

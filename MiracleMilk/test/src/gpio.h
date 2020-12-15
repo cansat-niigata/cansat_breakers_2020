@@ -39,6 +39,7 @@ namespace drv{
 			static bool readPin(unsigned int gpio);
 
 			static int* setPWM(unsigned int gpio,unsigned int dutycycle=128,unsigned int range=255,unsigned int frequency=1000);
+			static int changeDutyCycle(unsigned int gpio,unsigned int dutycycle);
 
 			static int setInterrupt(unsigned int gpio,gpioAlertFunc_t Function,const char* edge="FALLING");
 			static int setISRInterrupt(unsigned int gpio,unsigned int edge,gpioAlertFunc_t Function,unsigned int timeout=1000);
@@ -65,6 +66,7 @@ namespace drv{
 			static int writeI2CBlockData(unsigned int openedbus,unsigned int _register,char* buffer,unsigned int count=1);
 			static const char* readI2CBlockData(unsigned int openedbus,unsigned int _register,unsigned int count=1);
 
+			static std::string checkThis(int result);
 
 	};
 }

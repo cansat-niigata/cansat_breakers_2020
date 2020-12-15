@@ -106,25 +106,15 @@ Note::Note(const char* note,bool noteDate):log_chrono(std::chrono::system_clock:
 	}
 }
 
-Note::Note(int note,bool noteDate):log_chrono(std::chrono::system_clock::now()){
+Note::Note(const int note,bool noteDate):log_chrono(std::chrono::system_clock::now()){
 	if (noteDate == true){
 		char date[30];
 		std::time_t now = std::chrono::system_clock::to_time_t(log_chrono);
 		std::strftime(date,sizeof(date),"%Y/%m/%d %a %H:%M:%S : ",std::localtime(&now));
-		this->note = std::string(date) + std::string(std::to_string(note));
-	}else{
-		this->note = std::string(std::to_string(note));
-	}
-}
+		this->note = std::string(date) + std::to_string(note);
 
-Note::Note(double note,bool noteDate):log_chrono(std::chrono::system_clock::now()){
-	if (noteDate == true){
-		char date[30];
-		std::time_t now = std::chrono::system_clock::to_time_t(log_chrono);
-		std::strftime(date,sizeof(date),"%Y/%m/%d %a %H:%M:%S : ",std::localtime(&now));
-		this->note = std::string(date) + std::string(std::to_string(note));
 	}else{
-		this->note = std::string(std::to_string(note));
+		this->note = std::to_string(note);
 	}
 }
 
@@ -140,17 +130,42 @@ std::string Note::getNote(void){
 	return this->note;
 }
 
-Notes::Notes(void):length(0),logfile(nullptr){
+void Note::modifyNote(const char* new_note){
+	if (new_note!=nullptr){
+		note = std::string(new_note);
+	}
 }
 
-Notes::Notes(const std::string &logfile):length(0),logfile(logfile.c_str()){
+void Note::modifyNote(std::string new_note){
+	note = new_note;
 }
 
-Notes::Notes(const char* logfile):length(0),logfile(logfile){
+Notes::Notes(void):logfile(nullptr){
+}
+
+Notes::Notes(const std::string &logfile,const char* name):logfile(logfile.c_str()){
+	if(name != nullptr){
+		this->name = name;
+	}else{
+		this->name = nullptr;
+	}
+}
+
+Notes::Notes(const char* logfile,const char* name):name(name),logfile(logfile){
+	if(name != nullptr){
+		this->name = name;
+	}else{
+		this->name = nullptr;
+	}
 }
 
 Notes::~Notes(void){
+	dumpThis();
 }
+
+/*void Notes::setAutoDump(unsigned int autodump){
+	this->autodump = autodump;
+}*/
 
 void Notes::setLogFile(const std::string &logfile){
 	this->logfile = logfile.c_str();
@@ -160,9 +175,11 @@ void Notes::setLogFile(const char* logfile){
 	this->logfile = logfile;
 }
 
-void Notes::append(Note note){
+void Notes::append(const Note &note){
 	length++;
+	update++;
 	Note* notes_ = new Note[length];
+
 	if (length == 1){
 		notes_[0] = note;
 	}else{
@@ -172,4 +189,98 @@ void Notes::append(Note note){
 		notes_[length-1] = note;
 	}
 	this->notes = notes_;
+	
+}
+
+void Notes::append(const std::string &note,bool noteDate = true){
+	length++;
+	update++;
+	Note* notes_ = new Note[length];
+	Note note(note,noteDate);
+	if (length == 1){
+		notes_[0] = note;
+	}else{
+		for (int i=0;i < length - 1 ;i++){
+			notes_[i] = this->notes[i];
+		}
+		notes_[length-1] = note;
+	}
+	this->notes = notes_;
+}
+
+void Notes::append(const char* note,bool noteDate = true){
+	length++;
+	update++;
+	Note* notes_ = new Note[length];
+	Note note(note,noteDate);
+	if (length == 1){
+		notes_[0] = note;
+	}else{
+		for (int i=0;i < length - 1 ;i++){
+			notes_[i] = this->notes[i];
+		}
+		notes_[length-1] = note;
+	}
+	this->notes = notes_;
+}
+
+void Notes::append(const int note,bool noteDate = true){
+	length++;
+	update++;
+	Note* notes_ = new Note[length];
+	Note note_(note,noteDate);
+	if (length == 1){
+		notes_[0] = note;
+	}else{
+		for (int i=0;i < length - 1 ;i++){
+			notes_[i] = this->notes[i];
+		}
+		notes_[length-1] = note_;
+	}
+	this->notes = notes_;
+}
+
+const Note& Notes::getLastNote(void){
+	return notes[length-1];
+}
+
+unsigned int Notes::isUpdated(void){
+	return update;
+}
+
+bool Notes::dumpThis(void){
+	std::ofstream file(logfile,std::ios::app);
+	if (!file){
+		return false;
+	}else{
+		for (int i;i==length;i++){
+			file << notes[i+1].getNote() << std::endl;
+		}
+		return true;
+	}
+}
+
+bool Notes::dumpThis(unsigned int from){
+	std::ofstream file(logfile,std::ios::app);
+	if (!file){
+		return false;
+	}else{
+		for (int i=0;i==from;i++){
+			file << notes[i+1].getNote() << std::endl;
+		}
+		return true;
+	}
+}
+
+bool Notes::dumpUpdated(void){
+	std::ofstream file(logfile,std::ios::app);
+	if (!file){
+		return false;
+	}else{
+		for (int i=0;i==update;i++){
+			file << notes[i+1].getNote() << std::endl;
+		}
+		update = 0;
+		return true;
+	}
 }

@@ -4,6 +4,8 @@
 	
 #include <chrono>
 #include <string>
+#include <ostream>
+#include <fstream>
 #include <unistd.h>
 #include <stdlib.h>
 
@@ -36,31 +38,44 @@ namespace drv{
 			std::string note;
 		public:
 			Note(void);
-			Note(const std::string &note,bool noteDate = false);
-			Note(const char* note,bool noteDate = false);
-			Note(const int note,bool noteDate = false);
-			Note(const double note,bool noteDate = false);
+			Note(const std::string &note,bool noteDate = true);
+			Note(const char* note,bool noteDate = true);
+			Note(const int note,bool noteDate = true);
 			~Note(void);
 
 			Note waitFor(double milliseconds);
 			std::string getNote(void);
+			void modifyNote(const char* new_note);
+			void modifyNote(std::string new_note);
 	};
 
 	class Notes{
 		private:
-			unsigned int length;
-			Note* notes;
+			const char* name;
+			unsigned int length = 0;
+			unsigned int update = 0;
+			//unsigned int autodump = 0;
+			Note* notes = nullptr;
 			const char* logfile;
 		public:
 			Notes(void);
-			Notes(const std::string &logfile);
-			Notes(const char* logfile);
+			Notes(const std::string &logfile,const char* name=nullptr);
+			Notes(const char* logfile,const char* name=nullptr);
+
+			//void setAutoDump(unsigned int autodump);
 
 			void setLogFile(const std::string &logfile);
 			void setLogFile(const char* logfile);
 
 			bool dumpThis(void);
-			void append(Note note);
+			bool dumpThis(unsigned int to);
+			bool dumpUpdated(void);
+			void append(const Note &note);
+			void append(const std::string &note,bool noteDate = true);
+			void append(const char* note,bool noteDate = true);
+			void append(const int note,bool noteDate = true);
+			const Note& getLastNote(void);
+			unsigned int isUpdated(void);
 		
 	};
 }

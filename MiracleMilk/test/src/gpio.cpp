@@ -71,6 +71,11 @@ int* Gpio::setPWM(unsigned int gpio,unsigned int dutycycle,unsigned int range,un
     res[2] = gpioPWM(gpio,dutycycle);
     return res; 
 }
+
+int Gpio::changeDutyCycle(unsigned int gpio,unsigned int dutycycle){
+    return gpioPWM(gpio,dutycycle);
+}
+
 //			static int setInterrupt(unsigned int gpio,unsigned int edge,gpioAlertFunc_t Function);
 int Gpio::setInterrupt(unsigned int gpio,gpioAlertFunc_t Function,const char* edge){
     if (edge == nullptr){
@@ -189,6 +194,44 @@ const char* Gpio::readI2CBlockData(unsigned int openedbus,unsigned int _register
     char* buf;
     i2cReadI2CBlockData(openedbus,_register,buf,count);
     return const_cast<char*>(buf);
+}
+
+std::string Gpio::checkThis(int result){
+    const char* errmsg;
+    switch (result){
+        case PI_INIT_FAILED:
+            errmsg = "GPIO Initialize Failed!";
+            break;
+        case PI_BAD_USER_GPIO:
+            errmsg = "GPIO not 0-31";
+            break;
+        case PI_BAD_GPIO:
+            errmsg = "GPIO not 0-53";
+            break;
+        case PI_BAD_MODE:
+            errmsg = "GPIO Mode not 0-7";
+            break;
+        case PI_BAD_PUD:
+            errmsg = "GPIO PUD not 0-2";
+            break;
+        case PI_BAD_PULSEWIDTH:
+            errmsg = "PWM PulseWidth not 0 or 500-2500";
+            break;
+        case PI_BAD_DUTYCYCLE:
+            errmsg = "PWM DutyCycle outside set Range";
+            break;
+        case PI_GPIO_IN_USE:
+            errmsg = "This Gpio already using";
+            break;
+
+        default:
+            if (result < 0){
+                return std::string("Something Wrong!!:[ErrorCode]>>") + std::to_string(result);
+            }
+    }
+
+    return std::string(errmsg);
+    
 }
 
 //	};
