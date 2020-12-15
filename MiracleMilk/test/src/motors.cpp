@@ -85,6 +85,17 @@ void Motor::spin(bool invert){
     notes.append(Note(res2));
 }
 
+void Motor::stop(void){
+	notes.append(Note(Gpio::toggleOff(pinA)));
+	notes.append(Note(Gpio::toggleOff(pinB)));
+}
+
 void Motor::spinDuring(double Time,unsigned int Speed,bool invert=false){
-    
+    spin(invert);
+	Log().waitFor(Time);
+	stop();
+}
+
+void Motor::setSpeed(unsigned int Speed){
+	
 }

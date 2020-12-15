@@ -1,5 +1,5 @@
 from LibIMU import LibIMU
-from DRV_GPIO import MotorControl_TB67H450FNG,Drill_TB67H450FNG_knocked_out,LED
+from DRV_GPIO import MotorControl_TB67H450FNG,Drill_TB67H450FNG_knocked_out,HeatWire,LED
 from DRV_GPS_Serial import Gps_Serial
 from DRV_Camera import Camera
 import numpy
@@ -20,25 +20,23 @@ class RunBack:
 		#Mortor
 		self.MR1 = conf['config']['pin']['Mortor']['MR1']
 		self.MR2 = conf['config']['pin']['Mortor']['MR2']
-		#self.MR_VREF = conf['config']['pin']['Mortor']['MR_VREF']
 		self.ML1 = conf['config']['pin']['Mortor']['ML1']
 		self.ML2 = conf['config']['pin']['Mortor']['ML2']
-		#self.ML_VREF = conf['config']['pin']['Mortor']['ML_VREF']
-		#Servo
-		#self.SERVO = conf['config']['pin']['Servo']
 		#Drill(Spec)
 		self.drill_leng = conf['config']['control']['spec']['drill_updown_length']
 		self.drill_gear_rad = conf['config']['control']['spec']['drill_gear_rad']
 		#Mortor(drill_Elevator)
 		self.MD1 = conf['config']['pin']['Drill']['MD1']
 		self.MD2 = conf['config']['pin']['Drill']['MD2']
-		#self.MDVREF = conf['config']['pin']['Drill']['MDVREF']
 		#Motor(drill)
 		self.MD3 = conf['config']['pin']['Drill']['MD3']
 		self.MD4 = conf['config']['pin']['Drill']['MD4']
 		#Encoder(drill)
 		#self.ED1 = conf['config']['pin']['Drill']['ED1']
 		#self.ED2 = conf['config']['pin']['Drill']['ED2']
+		#Heatwire
+		self.HW = conf['config']['pin']['Heatwire']['HW']
+		self.H_TIME = conf['config']['control']['spec']['hw_time']
 		#LED
 		self.LED1 = conf['config']['pin']['LED']['LED1']
 		self.LED2 = conf['config']['pin']['LED']['LED2']
@@ -85,8 +83,7 @@ class RunBack:
 		self.transmit('DRY:LED. GPIONum:'+str(self.LED1)+','+str(self.LED2))
 		self.DRV_Mortor = MotorControl_TB67H450FNG(self.MR1,self.MR2,self.ML1,self.ML2)
 		self.transmit('RDY:Mortor. GPIONum: MR1:'+str(self.MR1)+',MR2:'+str(self.MR2)+',ML1:'+str(self.ML1)+',ML2:'+str(self.ML2))
-		#self.DRV_Servo = Servo(self.SERVO)
-		#self.transmit('RDY:Servo. GPIONum:'+str(self.SERVO))
+		self.DRV_HeatWire = HeatWire(self.HW)
 		self.DRV_Camera = Camera()
 		self.transmit('RDY:Camera.')
 		self.transmit('CAUTION!:calibrating IMU. DONT TOUCH ME.')
@@ -134,6 +131,11 @@ class RunBack:
 		self.transmit('Purging...by Servo')
 		self.DRV_Servo.swing()
 		self.DRV_Servo.terminate()"""
+
+	def purge(self):
+		self.transmit('Purging...')
+		self.DRV_HeatWire.purge()
+		
 
 	def Drill(self,gettime):
 		self.transmit('Drill Mode Online.')

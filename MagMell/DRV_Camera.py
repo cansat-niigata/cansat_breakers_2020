@@ -1,6 +1,7 @@
 import picamera
 import cv2
 import time
+import numpy
 #from DRV_GPS_Serial import Gps_Serial
 
 class Camera:

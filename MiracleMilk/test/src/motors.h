@@ -24,6 +24,8 @@ namespace drv{
 			void setSpeed(unsigned int Speed=128);
 	};
 
+#define STS_MOTOR_
+
 	class Motor{
 		private:
             Notes notes;
@@ -32,6 +34,7 @@ namespace drv{
 			unsigned int PWM_Frequency;
 			unsigned int PWM_Range;
 			unsigned int PWM_Dutycycle;
+
 		public:
 			Motor(unsigned int PinNum1,unsigned int PinNum2,unsigned int Frequency=1000,unsigned int Range=255,unsigned int Dutycycle=128,const char* file="./log/motors.txt");
 			~Motor(void);

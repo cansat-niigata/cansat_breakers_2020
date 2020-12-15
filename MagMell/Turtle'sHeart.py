@@ -88,7 +88,7 @@ def Manual(lat,lng,Goal_Range):
             str(DRV.getLatLngv2())
         elif (com_list[0] == 'cam') or (com_list[0] == 'detectTarget'):
             DRV.DRV_Camera.getImage()
-            print(DRV.DRV_Camera.detectTarget())
+            print(DRV.DRV_Camera.detectTargetv2())
         elif (com_list[0] == 'sts') or (com_list[0] == 'showStatus'):
             print(str(vars(DRV)))
         elif (com_list[0] == 'clb') or (com_list[0] == 'calibration'):

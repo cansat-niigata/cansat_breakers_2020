@@ -5,6 +5,8 @@ import pyproj
 import time
 import threading
 
+from DRV_GPIO import Gpio
+
 
 class Gps_Serial:
 
@@ -14,7 +16,12 @@ class Gps_Serial:
     lognum = 0
     timestamp = 0
 
-    def __init__(self,ser='/dev/serial0',baudrate=19200,timeout=10,timezone=9,fmt='dd',log='./log/log.txt'):
+    def __init__(self,pinBusy,ser='/dev/ttyAMA0',baudrate=19200,timeout=10,timezone=9,fmt='dd',log='./log/log.txt'):
+        self.pinbusy = pinBusy
+        self.gpio = Gpio()
+        self.gpio.setPinIn(pinBusy)
+        
+
         self.s = serial.Serial(ser,baudrate=baudrate,timeout=timeout)
         self.s.write('ECIO\r\n').encode('ascii')
         self.gps = micropyGPS.MicropyGPS(timezone,fmt)
@@ -34,8 +41,8 @@ class Gps_Serial:
         self.s.readline()#1回目は読み捨て
         while self.threadflag:
             sentence = self.s.readline().decode('utf-8')       
-            if(sentence[0] != '$'):#←これいる？
-                continue
+            #if(sentence[0] != '$'):#←これいる？
+            #    continue
             for x in sentence:
                 self.gps.update(x)
                 self.timestamp = time.time()

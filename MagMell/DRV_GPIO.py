@@ -15,6 +15,7 @@ class Gpio:
 
 	def setPinIn(self,gpionum):
 		self.gpio.set_mode(gpionum,pigpio.INPUT)
+		self.gpio.set_pull_up_down(gpionum,pigpio.PUD_DOWN)
 
 	def setServo(self,gpionum,pulse_width=500):#500~2500
 		self.gpio.set_servo_pulsewidth(gpionum,pulse_width)
@@ -48,6 +49,9 @@ class Gpio:
 
 	def toggleOff(self,gpionum):
 		self.gpio.write(gpionum,0)
+
+	def readPin(self,gpionum):
+		return self.gpio.read(gpionum)
 
 	def terminate(self):
 		self.gpio.stop()
@@ -90,7 +94,7 @@ class MotorControl_TB67H450FNG:
 			self.gpio.toggleOff(self.L1)
 			self.gpio.toggleOff(self.L2)
 
-	def spinMotor_time(self,mot='00',time):
+	def spinMotor_time(self,mot='00',time=3):
 		self.spinMotor(mot)
 		time.sleep(time)
 		self.spinMotor('00')
@@ -397,6 +401,10 @@ class Drill_TB67H450FNG:
 		self.deg = 12*self.value#度数法に変換
 		return self.deg
 
+	def testInterrupt(self,gpio,level,tick):
+		print(gpio,level,tick)
+
+
 class Drill_TA7291P:
 
 	table_dict = {                          #データ変換テーブル
@@ -492,6 +500,20 @@ class Drill_TA7291P:
 		self.previos_data = follow_data#値を保存
 		self.deg = 12*self.value#度数法に変換
 		return self.deg
+
+	def testInterrupt(self,gpio,level,tick):
+		print(gpio,level,tick)
+
+class HeatWire:
+	def __init__(self,pinFET,time=3):
+		self.gpio = Gpio()
+		self.pin = pinFET
+		self.gpio.setPinOut(pinFET)
+		self.time = time
+
+	def purge(self):
+		self.gpio.toggleOn(self.pin)
+		time.sleep(self.time)
 
 class LED:
 	flag = False
