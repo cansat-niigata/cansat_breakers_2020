@@ -2,6 +2,8 @@
 #define MOTORS_H
 #endif
 
+#include <thread>
+#include <mutex>
 #include "log.h"
 #include "gpio.h"
 
@@ -31,7 +33,7 @@ namespace drv{
 	class Motor{
 		private:
             Notes notes;
-			const char* name;
+			std::string name;
 			const unsigned int pinA;
 			const unsigned int pinB;
 			unsigned int PWM_Frequency;
@@ -40,7 +42,8 @@ namespace drv{
 			uint8_t sts;
 
 		public:
-			Motor(const char* name,unsigned int PinNum1,unsigned int PinNum2,unsigned int Frequency=1000,unsigned int Range=255,unsigned int Dutycycle=128,const char* file="./log/motors.txt");
+			Motor(void);
+			Motor(const char* name,unsigned int PinNum1,unsigned int PinNum2,unsigned int Frequency=1000,unsigned int Range=255,unsigned int Dutycycle=128,const char* file="./log/log.txt");
 			~Motor(void);
 
             void spin(bool invert=false);
@@ -49,22 +52,26 @@ namespace drv{
 			void stop(void);
 			void setSpeed(unsigned int Speed=128);
 			Note checkStatus(int res);
+			uint8_t getStatus(void);
 			void dumpFile(void);
 	};
 
 	class Motors{
 		private:
-			Motor LEFT;
-			Motor RIGHT;
-			uint8_t stsL;
-			uint8_t stsR;
+			Motor* left;
+			Motor* right;
 		public:
 			Motors(unsigned int pinR1,unsigned int pinR2,unsigned int pinL1,unsigned int pinL2,unsigned int R_SPEED=128,unsigned int L_SPEED=128);
 			~Motors(void);
 
-			void drive(uint8_t RIGHT,uint8_t LEFT);
-			void drive(uint8_t RIGHT,uint8_t LEFT,unsigned int R_speed,unsigned int L_speed);
+			void drive(uint8_t rsts,uint8_t lsts);
+			void drive(uint8_t rsts,uint8_t lsts,unsigned int R_speed,unsigned int L_speed);
+			void setSpeedL(unsigned int speed);
+			void setSpeedR(unsigned int speed);
+			void setSpeed(unsigned int R_speed,unsigned int L_speed);
 			void stop(void);
+			uint8_t getStatusL(void);
+			uint8_t getStatusR(void);
 	};
 }
 

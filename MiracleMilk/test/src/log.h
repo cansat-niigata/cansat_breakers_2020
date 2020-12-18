@@ -54,7 +54,7 @@ namespace drv{
 			const char* name;
 			unsigned int length = 0;
 			unsigned int update = 0;
-			//unsigned int autodump = 0;
+			unsigned int autodump = 4;
 			Note* notes = nullptr;
 			const char* logfile;
 		public:
@@ -62,7 +62,7 @@ namespace drv{
 			Notes(const std::string &logfile,const char* name=nullptr);
 			Notes(const char* logfile,const char* name=nullptr);
 
-			//void setAutoDump(unsigned int autodump);
+			void setAutoDump(unsigned int autodump);
 
 			void setLogFile(const std::string &logfile);
 			void setLogFile(const char* logfile);

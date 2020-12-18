@@ -163,9 +163,10 @@ Notes::~Notes(void){
 	dumpThis();
 }
 
-/*void Notes::setAutoDump(unsigned int autodump){
+void Notes::setAutoDump(unsigned int autodump){
 	this->autodump = autodump;
-}*/
+	length = autodump;
+}
 
 void Notes::setLogFile(const std::string &logfile){
 	this->logfile = logfile.c_str();
@@ -178,6 +179,13 @@ void Notes::setLogFile(const char* logfile){
 void Notes::append(const Note &note){
 	length++;
 	update++;
+	if (autodump != 0){
+		if (update >= autodump){
+			dumpUpdated();
+		}
+	}
+
+	Note* tmp = notes;
 	Note* notes_ = new Note[length];
 
 	if (length == 1){
@@ -189,6 +197,7 @@ void Notes::append(const Note &note){
 		notes_[length-1] = note;
 	}
 	this->notes = notes_;
+	delete tmp;
 	
 }
 

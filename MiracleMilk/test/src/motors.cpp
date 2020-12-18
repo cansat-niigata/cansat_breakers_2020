@@ -58,9 +58,14 @@ void Motor_1wire::setSpeed(unsigned int Speed){
 			void setSpeed(unsigned int Speed=128);
 	};*/
 
+Motor::Motor(void)
+:pinA(NULL),pinB(NULL),PWM_Frequency(NULL),PWM_Range(NULL),PWM_Dutycycle(NULL),sts(STS_MOTOR_S){
+};
+
 Motor::Motor(const char* name,unsigned int pinNum1,unsigned int PinNum2,unsigned int Frequency,unsigned int Range,unsigned int Dutycycle,const char* file)
 :pinA(pinNum1),pinB(PinNum2),PWM_Frequency(Frequency),PWM_Range(Range),PWM_Dutycycle(Dutycycle),sts(STS_MOTOR_S){
     notes = Notes(file);
+	this->name = std::string(name);
     Gpio::setPinOut(pinA);
     Gpio::setPinOut(pinB);
 }
@@ -120,9 +125,68 @@ void Motor::setSpeed(unsigned int Speed){
 }
 
 Note Motor::checkStatus(int res){
-	return Note(Gpio::checkThis(res));
+	return Note(name.append(":") + Gpio::checkThis(res));
 }
 
 void Motor::dumpFile(void){
 	notes.dumpUpdated();
+}
+
+uint8_t Motor::getStatus(void){
+	return sts;
+}
+
+Motors::Motors(unsigned int pinR1,unsigned int pinR2,unsigned int pinL1,unsigned int pinL2,unsigned int R_SPEED=128,unsigned int L_SPEED=128){
+	left = new Motor("MOTOR_L",pinL1,pinL2,1000,255,L_SPEED);
+	right = new Motor("MOTOR_R",pinR1,pinR2,1000,255,R_SPEED);
+}
+
+void Motors::drive(uint8_t rsts,uint8_t lsts){
+	if (rsts==STS_MOTOR_F){
+		right->spin();
+	}else if (rsts==STS_MOTOR_B){
+		right->spin(true);
+	}else{
+		right->stop();
+	}
+	
+	if (lsts==STS_MOTOR_F){
+		left->spin();
+	}else if (lsts==STS_MOTOR_B){
+		left->spin(true);
+	}else{
+		left->stop();
+	}
+}
+
+void Motors::drive(uint8_t rsts,uint8_t lsts,unsigned int R_speed,unsigned int L_speed){
+	right->setSpeed(R_speed);
+	left->setSpeed(L_speed);
+	this->drive(rsts,lsts);
+}
+
+void Motors::setSpeedR(unsigned int speed){
+	right->setSpeed(speed);
+}
+
+void Motors::setSpeedL(unsigned int speed){
+	left->setSpeed(speed);
+}
+
+void Motors::setSpeed(unsigned int R_speed,unsigned int L_speed){
+	right->setSpeed(R_speed);
+	left->setSpeed(L_speed);
+}
+
+void Motors::stop(void){
+	right->stop();
+	left->stop();
+}
+
+uint8_t Motors::getStatusR(void){
+	return right->getStatus();
+}
+
+uint8_t Motors::getStatusL(void){
+	return left->getStatus();
 }
