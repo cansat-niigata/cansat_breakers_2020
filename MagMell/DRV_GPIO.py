@@ -318,16 +318,9 @@ class Drill_TB67H450FNG_knocked_out:
 
 class Drill_TB67H450FNG:
 
-	table_dict = {                          #データ変換テーブル
-			'00':{'00':0,'01':1,'10':-1,'11':-2},#11はエラー
-			'01':{'00':-1,'01':0,'10':-2,'11':1},#10はエラー
-			'10':{'00':1,'01':-2,'10':0,'11':-1},#01はエラー
-			'11':{'00':-2,'01':-1,'10':1,'11':0} #00はエラー
-		}
-
-	previos_data = '00'#前回の値
-	value = 0
-	deg = 0
+	value = 0b1111
+	rotate = 0
+	deg = 0	#prev_value = 0b0000
 
 	def __init__(self,pinElvA,pinElvB,pinDA,pinDB,pinEA,pinEB,rad=10,maxleng=100):
 		self.gpio = Gpio()
@@ -340,8 +333,8 @@ class Drill_TB67H450FNG:
 		self.radius = rad
 		self.length = maxleng
 		self.motor = MotorControl_TB67H450FNG(self.PELA,self.PELB,self.DA,self.DB,R_speed=255)
-		self.cb1 = self.gpio.setInterrupt(pinEA,self.recData,'RISING')
-		self.cb2 = self.gpio.setInterrupt(pinEB,self.recData,'RISING')
+		self.cb1 = self.gpio.setInterrupt(pinEA,self.update,'EITHER')
+		self.cb2 = self.gpio.setInterrupt(pinEB,self.update,'EITHER')
 
 	def upDrill(self,leng=None,speed=255):
 		if leng == None:
@@ -388,18 +381,37 @@ class Drill_TB67H450FNG:
 	def terminate(self):
 		self.gpio.terminate()
 
-	def recData(self,gpio,level,tick):#本当はもっと軽い処理にしたいのでこの辺りは改良の余地ありか？
-		follow_data = '00'#初期化
-		if gpio == self.PEA:#どちらのピンに割り込みが入ったかで分岐
-			follow_data = '{0}{1}'.format('1',self.previos_data[1])
-		elif gpio == self.PEB:
-			follow_data = '{0}{1}'.format(self.previos_data[0],'1')
-		self.value += self.table_dict[self.previos_data][follow_data]#取得値を変換して足す
-		if self.value == -2:
-			self.value = 0
-		self.previos_data = follow_data#値を保存
-		self.deg = 12*self.value#度数法に変換
-		return self.deg
+	def update(self,gpio,level,tick):#aaaaaaaaaaaaaaaaaa!!!!!!!!!!!!!!!
+		if gpio == self.PEA:
+			tmp = (self.value & 0b0001) + (level << 1)
+		else:
+			tmp = (self.value & 0b0010) + level
+		prev = self.value
+		self.value = ((self.value << 2) & 0b1100) + tmp
+
+		if self.value == 0b1101:
+			self.rotate += 1
+		elif self.value == 0b0100:
+			self.rotate += 1
+		elif self.value == 0b0010:
+			self.rotate += 1
+		elif self.value == 0b1011:
+			self.rotate += 1
+		elif self.value == 0b1110:
+			self.rotate -= 1
+		elif self.value == 0b1000:
+			self.rotate -= 1
+		elif self.value == 0b0001:
+			self.rotate -= 1
+		elif self.value == 0b0100:
+			self.rotate -= 1
+		else:
+			self.value = prev
+
+		return self.rotate
+
+	def getRotation(self):
+		return self.rotate*30
 
 	def testInterrupt(self,gpio,level,tick):
 		print(gpio,level,tick)
