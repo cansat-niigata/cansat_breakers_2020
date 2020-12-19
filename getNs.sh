@@ -1,6 +1,8 @@
 #!/bin/bash
 
-
+#改行コードに注意!
+#通常WSL1からは名前解決できないけどこれを使えばsshとUSBシリアル通信がWSL上で完結できるゾ！
+#ついでに背景を透過できて便利
 
 CMDNAME=`basename $0`
 
@@ -15,8 +17,8 @@ do
 done
 
 if [ $FLAG_U = 1 ]; then
-	TMP=`powershell.exe "Resolve-DnsName $VALUE_HNAME | ConvertTo-Json" | jq -r '.[1].IP4Address'`
+	TMP=`powershell.exe "Resolve-DnsName $VALUE_HNAME | ConvertTo-Json" | jq -r '.[0].IP4Address'`
 	ssh $VALUE_UNAME@$TMP
 else
-	powershell.exe "Resolve-DnsName $VALUE_HNAME | ConvertTo-Json" | jq -r '.[1].IP4Address'
+	powershell.exe "Resolve-DnsName $VALUE_HNAME | ConvertTo-Json" | jq -r '.[0].IP4Address'
 fi
