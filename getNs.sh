@@ -17,8 +17,8 @@ do
 done
 
 if [ $FLAG_U = 1 ]; then
-	TMP=`powershell.exe "Resolve-DnsName $VALUE_HNAME | ConvertTo-Json" | jq -r '.[0].IP4Address'`
+	TMP=`powershell.exe "Resolve-DnsName $VALUE_HNAME | ConvertTo-Json" | jq -r '.[0].IPAddress'`
 	ssh $VALUE_UNAME@$TMP
 else
-	powershell.exe "Resolve-DnsName $VALUE_HNAME | ConvertTo-Json" | jq -r '.[0].IP4Address'
+	powershell.exe "Resolve-DnsName $VALUE_HNAME | ConvertTo-Json" | jq -r '.[0].IPAddress'
 fi
