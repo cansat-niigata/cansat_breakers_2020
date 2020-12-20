@@ -1,6 +1,6 @@
 #!/bin/bash
 
-
+#これをつかうとwsl1上からpowershellを介して名前解決できます
 
 CMDNAME=`basename $0`
 FLAG_U=0
