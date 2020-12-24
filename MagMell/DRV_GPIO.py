@@ -381,7 +381,7 @@ class Drill_TB67H450FNG:
 	def terminate(self):
 		self.gpio.terminate()
 
-	def update(self,gpio,level,tick):#aaaaaaaaaaaaaaaaaa!!!!!!!!!!!!!!!
+	def update(self,gpio,level,tick):#減速比157:1
 		if gpio == self.PEA:
 			tmp = (self.value & 0b0001) + (level << 1)
 		else:
