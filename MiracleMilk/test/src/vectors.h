@@ -45,7 +45,7 @@ typedef struct Quaternion{
 			return Quaternion(nw,nx,ny,nz);
 		}
 
-		Quaternion getInvert(void){
+		Quaternion invert(void){
 			return Quaternion(w,-x,-y,-z);
 		}
 
@@ -56,6 +56,10 @@ typedef struct Quaternion{
 		Quaternion normalize(void){
 			double norm = getNorm();
 			return Quaternion(w/norm,x/norm,y/norm,z/norm);
+		}
+
+		Vector toVector(void){
+			return Vector(x,y,z);
 		}
 
 } Quaternion,*pQuaternion;
@@ -76,6 +80,9 @@ typedef struct Vector{
 			x = _x;
 			y = _y;
 			z = _z;
+		}
+
+		~Vector(){
 		}
 
 		Vector multiply(Vector another){
@@ -99,8 +106,8 @@ typedef struct Vector{
 		}
 
 		Vector rotate(Quaternion &Q){
-			Quaternion Posture = Q.multiply(this->toQuaternion()).multiply(Q.getInvert());
+			Quaternion Posture = Q.multiply(this->toQuaternion()).multiply(Q.invert());
 			return Vector(Posture.x,Posture.y,Posture.z);
 		}
-		
+
 } Vector,*pVector;
