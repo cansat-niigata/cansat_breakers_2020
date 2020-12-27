@@ -38,9 +38,9 @@ namespace drv{
 			std::string note;
 		public:
 			Note(void);
-			Note(const std::string &note,bool noteDate = true);
-			Note(const char* note,bool noteDate = true);
-			Note(const int note,bool noteDate = true);
+			Note(const std::string &note);
+			Note(const char* note);
+			Note(const int note);
 			~Note(void);
 
 			Note waitFor(double milliseconds);
@@ -48,8 +48,7 @@ namespace drv{
 			void modifyNote(const char* new_note);
 			void modifyNote(std::string new_note);
 	};
-
-	class Notes{
+	/*class Notes{
 		private:
 			const char* name;
 			unsigned int length = 0;
@@ -77,5 +76,5 @@ namespace drv{
 			const Note& getLastNote(void);
 			unsigned int isUpdated(void);
 		
-	};
+	};*/
 }

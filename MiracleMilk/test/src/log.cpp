@@ -76,46 +76,22 @@ Note::Note(void):log_chrono(std::chrono::system_clock::now()){
 	note = std::string("null.");
 }
 
-Note::Note(const std::string &note,bool noteDate):log_chrono(std::chrono::system_clock::now()){
-	
-	if (noteDate == true){
-		char date[30];
-		std::time_t now = std::chrono::system_clock::to_time_t(log_chrono);
-		std::strftime(date,sizeof(date),"%Y/%m/%d %a %H:%M:%S : ",std::localtime(&now));
-		this->note = std::string(date) + note;
-	}else{
-		this->note = note;
-	}
+Note::Note(const std::string &note):log_chrono(std::chrono::system_clock::now()){
+	this->note = note;
 }
 
-Note::Note(const char* note,bool noteDate):log_chrono(std::chrono::system_clock::now()){
+Note::Note(const char* note):log_chrono(std::chrono::system_clock::now()){
 	const char* _note;
 	if (note == nullptr){
 		_note = "null.";
 	}else{
 		_note = note;
 	}
-
-	if (noteDate == true){
-		char date[30];
-		std::time_t now = std::chrono::system_clock::to_time_t(log_chrono);
-		std::strftime(date,sizeof(date),"%Y/%m/%d %a %H:%M:%S : ",std::localtime(&now));
-		this->note = std::string(date) + std::string(_note);
-	}else{
-		this->note = std::string(_note);
-	}
+	this->note = std::string(_note);
 }
 
-Note::Note(const int note,bool noteDate):log_chrono(std::chrono::system_clock::now()){
-	if (noteDate == true){
-		char date[30];
-		std::time_t now = std::chrono::system_clock::to_time_t(log_chrono);
-		std::strftime(date,sizeof(date),"%Y/%m/%d %a %H:%M:%S : ",std::localtime(&now));
-		this->note = std::string(date) + std::to_string(note);
-
-	}else{
-		this->note = std::to_string(note);
-	}
+Note::Note(const int note):log_chrono(std::chrono::system_clock::now()){
+	this->note = std::to_string(note);
 }
 
 Note::~Note(void){
@@ -127,7 +103,10 @@ Note Note::waitFor(double milliseconds){
 }
 
 std::string Note::getNote(void){
-	return this->note;
+	char date[30];
+	std::time_t now = std::chrono::system_clock::to_time_t(this->log_chrono);
+	std::strftime(date,sizeof(date),"%Y/%m/%d %a %H:%M:%S : ",std::localtime(&now));
+	return std::string(date) += this->note;
 }
 
 void Note::modifyNote(const char* new_note){
@@ -140,7 +119,7 @@ void Note::modifyNote(std::string new_note){
 	note = new_note;
 }
 
-Notes::Notes(void):logfile(nullptr){
+/*Notes::Notes(void):logfile(nullptr){
 }
 
 Notes::Notes(const std::string &logfile,const char* name):logfile(logfile.c_str()){
@@ -292,4 +271,4 @@ bool Notes::dumpUpdated(void){
 		update = 0;
 		return true;
 	}
-}
+}*/

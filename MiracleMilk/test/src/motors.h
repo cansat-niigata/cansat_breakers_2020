@@ -32,8 +32,6 @@ namespace drv{
 
 	class Motor{
 		private:
-            Notes notes;
-			std::string name;
 			const unsigned int pinA;
 			const unsigned int pinB;
 			unsigned int PWM_Frequency;
@@ -43,15 +41,14 @@ namespace drv{
 
 		public:
 			Motor(void);
-			Motor(const char* name,unsigned int PinNum1,unsigned int PinNum2,unsigned int Frequency=1000,unsigned int Range=255,unsigned int Dutycycle=128,const char* file="./log/log.txt");
+			Motor(const char* name,unsigned int PinNum1,unsigned int PinNum2,unsigned int Frequency=1000,unsigned int Range=255,unsigned int Dutycycle=128);
 			~Motor(void);
 
             void spin(bool invert=false);
 			void spin(unsigned int Speed,bool Invert=false);
 			void spinDuring(double Time,unsigned int Speed=128,bool invert=false);
 			void stop(void);
-			void setSpeed(unsigned int Speed=128);
-			Note checkStatus(int res);
+			void setSpeed(unsigned int Speed=128);;
 			uint8_t getStatus(void);
 			void dumpFile(void);
 	};
