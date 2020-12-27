@@ -13,11 +13,8 @@ typedef struct Quaternion{
 		double y;
 		double z;
 
-		Quaternion(void){
-			w = 1.0;
-			x = 0.0;
-			y = 0.0;
-			z = 0.0;
+		Quaternion(void):
+		w(1.0),x(0.0),y(0.0),z(0.0){
 		}
 
 		/*Quaternion(int32_t* data_array){
@@ -27,11 +24,8 @@ typedef struct Quaternion{
 			z = (double)data_array[3] / 16384.0;
 		}*/
 
-		Quaternion(double _w,double _x,double _y,double _z){
-			w = _w;
-			x = _x;
-			y = _y;
-			z = _z;
+		Quaternion(double _w,double _x,double _y,double _z):
+		w(_w),x(_x),y(_y),z(_z){
 		}
 
 		~Quaternion(void){
@@ -58,7 +52,7 @@ typedef struct Quaternion{
 			return Quaternion(w/norm,x/norm,y/norm,z/norm);
 		}
 
-		Vector toVector(void){
+		Vector toVector(void){//vector型からもどすとき専用!
 			return Vector(x,y,z);
 		}
 
@@ -106,8 +100,7 @@ typedef struct Vector{
 		}
 
 		Vector rotate(Quaternion &Q){
-			Quaternion Posture = Q.multiply(this->toQuaternion()).multiply(Q.invert());
-			return Vector(Posture.x,Posture.y,Posture.z);
+			return Q.multiply(this->toQuaternion()).multiply(Q.invert()).toVector();
 		}
 
 } Vector,*pVector;
