@@ -64,16 +64,12 @@ typedef struct Vector{
 		double y;
 		double z;
 
-		Vector(void){
-			x = 0.0;
-			y = 0.0;
-			z = 0.0;
+		Vector(void):
+		x(0.0),y(0.0),z(0.0){
 		}
 
-		Vector(double _x,double _y,double _z){
-			x = _x;
-			y = _y;
-			z = _z;
+		Vector(double _x,double _y,double _z):
+		x(_x),y(_y),z(_z){
 		}
 
 		~Vector(){
