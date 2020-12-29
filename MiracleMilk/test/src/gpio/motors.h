@@ -2,9 +2,6 @@
 #define MOTORS_H
 #endif
 
-#include <thread>
-#include <mutex>
-#include "log.h"
 #include "gpio.h"
 
 namespace drv{
