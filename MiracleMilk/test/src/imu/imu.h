@@ -9,8 +9,7 @@
 
 #include "log.h"
 #include "vectors.h"
-#include <thread>
-#include <mutex>
+#include <iostream>
 
 #define MPU9250
 #define AK8963_SECONDARY
@@ -20,36 +19,64 @@ typedef int inv_error_t;
 #define INV_SUCCESS 0
 #define INV_ERROR 0x20
 
-
+#define DIM 3
 
 namespace drv{
-    class imu9250{
-        private:
-            uint8_t status;
-            uint8_t fifocount;
-            uint8_t fifobuffer[64];
-            std::mutex mtx;
-            bool readydmp = false;
+	class imu9250{
+		private:
+			uint8_t stat;
 
-            int16_t accel_v[3] = {0,0,0};
-            int16_t gravity_v[3] = {0,0,0};
-            int32_t quat[4];
-            int32_t t;
-            int16_t c[3];
+			int isready = 0;
+			int initialized = 0;
 
-            Vector gravity;
-            Quaternion rotate;
+			int respond;
+			
+			uint8_t asence;
+			uint16_t lfp_freq;
+			uint16_t gsence;
+			//unsigned int msence;
 
-            float temp;
-            double accel[3];
-            double gyro[3];
-            double magnet[3];
+			int16_t raw_acc[3];
+			int16_t raw_gyr[3];
+			int16_t raw_mgn[3];
+			int64_t raw_quat[4];
+			int16_t sensors;
+			uint8_t counter_fifo;
+			uint8_t bbuffer_fifo[256];
 
-            uint8_t fifo_rate = 40;
+			Quaternion quat;
+			Vector grav;
 
-        public:
-            imu9250(void);
-            imu9250(int acc_range,int gyro_range,int magnet_range);
-        
-    };
+			double rpy[3];
+
+			float acc[3];
+			float gyr[3];
+			float mgn[3];
+
+			unsigned int comm_rate;
+
+			static void delay_ms(unsigned int ms);
+
+			static double fixAngle(double angle);
+
+			static void updateGrav(Vector* v,Quaternion* q);
+
+			static void updateRollPitchYaw(double buf[3],Quaternion* q,Vector* v);
+
+		public:
+			imu9250(void);
+			imu9250(uint8_t acc_range,uint16_t gyro_range,uint16_t lfp_cfreq,unsigned int commrate);
+			~imu9250(void);
+
+			int start(void);
+			int update(void);
+
+			double* getQuaternion(void);
+			double* getRollPitchYaw(void);
+
+			float* getAccel(void);
+			float* getGyro(void);
+			float* getCompass(void);
+		
+	};
 };

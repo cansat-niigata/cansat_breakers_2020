@@ -25,7 +25,9 @@
 #include "inv_mpu.h"
 
 //ここで設定
+
 #define MPU9250
+
 /* The following functions must be defined for this platform:
  * i2c_write(unsigned char slave_addr, unsigned char reg_addr,
  *      unsigned char length, unsigned char const *data)
@@ -78,7 +80,7 @@
 #if defined AK8975_SECONDARY || defined AK8963_SECONDARY
 #define AK89xx_SECONDARY
 #else
-/* #warning "No compass = less profit for Invensense. Lame." */
+#warning "No compass = less profit for Invensense. Lame." 
 #endif
 
 static int set_int_enable(unsigned char enable);

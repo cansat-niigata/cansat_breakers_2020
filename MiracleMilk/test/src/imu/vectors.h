@@ -39,6 +39,10 @@ typedef struct Quaternion{
 			return Quaternion(nw,nx,ny,nz);
 		}
 
+		Quaternion fromAnglerVelocity(double avx,double avy,double avz,double time){
+			return this->multiply(Quaternion(0,avx,avy,avz));
+		}
+
 		Quaternion invert(void){
 			return Quaternion(w,-x,-y,-z);
 		}
@@ -98,5 +102,6 @@ typedef struct Vector{
 		Vector rotate(Quaternion &Q){
 			return Q.multiply(this->toQuaternion()).multiply(Q.invert()).toVector();
 		}
+		
 
 } Vector,*pVector;
