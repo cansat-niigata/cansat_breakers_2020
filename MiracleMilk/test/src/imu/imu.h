@@ -40,7 +40,7 @@ namespace drv{
 			int16_t raw_acc[3];
 			int16_t raw_gyr[3];
 			int16_t raw_mgn[3];
-			int64_t raw_quat[4];
+			long int raw_quat[4];
 			int16_t sensors;
 			uint8_t counter_fifo;
 			uint8_t bbuffer_fifo[256];
@@ -48,7 +48,7 @@ namespace drv{
 			Quaternion quat;
 			Vector grav;
 
-			double rpy[3];
+			float rpy[3];
 
 			float acc[3];
 			float gyr[3];
@@ -58,11 +58,11 @@ namespace drv{
 
 			static void delay_ms(unsigned int ms);
 
-			static double fixAngle(double angle);
+			static float fixAngle(float angle);
 
 			static void updateGrav(Vector* v,Quaternion* q);
 
-			static void updateRollPitchYaw(double buf[3],Quaternion* q,Vector* v);
+			static void updateRollPitchYaw(float* buf,Quaternion* q,Vector* v);
 
 		public:
 			imu9250(void);
@@ -72,8 +72,8 @@ namespace drv{
 			int start(void);
 			int update(void);
 
-			double* getQuaternion(void);
-			double* getRollPitchYaw(void);
+			float* getQuaternion(void);
+			float* getRollPitchYaw(void);
 
 			float* getAccel(void);
 			float* getGyro(void);

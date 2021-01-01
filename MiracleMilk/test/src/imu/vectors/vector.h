@@ -9,19 +9,19 @@ struct Quaternion;
 
 struct Vector{
 	public:
-		double x;
-		double y;
-		double z;
+		float x;
+		float y;
+		float z;
 
 		Vector(void);
 
-		Vector(double _x,double _y,double _z);
+		Vector(float _x,float _y,float _z);
 
 		~Vector();
 
 		Vector multiply(Vector another);
 
-		double getNorm(void);
+		float getNorm(void);
 
 		Vector normalize(void);
 

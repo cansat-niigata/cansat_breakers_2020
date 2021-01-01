@@ -124,7 +124,7 @@ void imu9250::delay_ms(unsigned int ms){
 	usleep(ms);
 }
 
-double imu9250::fixAngle(double angle){
+float imu9250::fixAngle(float angle){
 	if (angle <= -180){
 		return angle + 360;
 	}else if(angle > 180){
@@ -138,14 +138,14 @@ void imu9250::updateGrav(Vector* v,Quaternion* q){
 	v->z = q->w*q->w - q->x*q->x - q->y*q->y +q->z*q->z;
 }
 
-void imu9250::updateRollPitchYaw(double buf[3],Quaternion* q,Vector* v){
+void imu9250::updateRollPitchYaw(float buf[3],Quaternion* q,Vector* v){
 	buf[0] = atan(v->y/sqrt(v->x*v->x + v->z*v->z));
 	buf[1] = atan(v->x/sqrt(v->y*v->y + v->z*v->z));
 	buf[2] = atan2(2*(q->x*q->y - q->w*q->z),2*(q->w*q->w + q->x*q->x) - 1);
 }
 
-double* imu9250::getQuaternion(void){
-	double q[4];
+float* imu9250::getQuaternion(void){
+	float q[4];
 	q[0] = quat.w;
 	q[1] = quat.x;
 	q[2] = quat.y;
@@ -153,7 +153,7 @@ double* imu9250::getQuaternion(void){
 	return q;
 }
 
-double* imu9250::getRollPitchYaw(void){
+float* imu9250::getRollPitchYaw(void){
 	return rpy;
 }
 
