@@ -680,6 +680,11 @@ class LibIMU:
 		self.ACC_PITCH = 0
 		self.MGN_YAW = 0 
 
+	def test(self):
+		print('GYR_YAW:',self.GYR_YAW)
+		print('MGN_YAW',self.MGN_YAW)
+		print('EA_YAW:',self.EA_YAW)
+
 	
 
 
