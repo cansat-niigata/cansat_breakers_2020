@@ -138,7 +138,7 @@ void imu9250::updateGrav(Vector* v,Quaternion* q){
 	v->z = q->w*q->w - q->x*q->x - q->y*q->y +q->z*q->z;
 }
 
-void imu9250::updateRollPitchYaw(float buf[3],Quaternion* q,Vector* v){
+void imu9250::updateRollPitchYaw(float* buf,Quaternion* q,Vector* v){
 	buf[0] = atan(v->y/sqrt(v->x*v->x + v->z*v->z));
 	buf[1] = atan(v->x/sqrt(v->y*v->y + v->z*v->z));
 	buf[2] = atan2(2*(q->x*q->y - q->w*q->z),2*(q->w*q->w + q->x*q->x) - 1);
