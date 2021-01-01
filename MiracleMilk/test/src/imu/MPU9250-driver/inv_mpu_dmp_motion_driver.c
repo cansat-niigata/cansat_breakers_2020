@@ -24,6 +24,16 @@
 #include "dmpKey.h"
 #include "dmpmap.h"
 
+
+#define MPU9250
+
+#include "../../i2c/i2c.h"
+#define delay_ms(a) usleep(a*1000)
+#define fabs(x) (((x)>0)?(x):-(x))
+#define min(a,b) ((a)<(b)?(a):(b))
+#define log_i printf
+#define log_e printf
+
 /* The following functions must be defined for this platform:
  * i2c_write(unsigned char slave_addr, unsigned char reg_addr,
  *      unsigned char length, unsigned char const *data)
