@@ -42,6 +42,7 @@
 #define delay_ms(a) usleep(a*1000)
 #define fabs(x) (((x)>0)?(x):-(x))
 #define min(a,b) ((a)<(b)?(a):(b))
+#define log_i printf
 
 #if !defined MPU6050 && !defined MPU9150 && !defined MPU6500 && !defined MPU9250
 #error  Which gyro are you using? Define MPUxxxx in your compiler options.
