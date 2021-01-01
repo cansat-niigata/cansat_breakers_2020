@@ -33,7 +33,7 @@
 #define min(a,b) ((a)<(b)?(a):(b))
 #define log_i printf
 #define log_e printf
-#define __no_operation (void)(0)
+#define __no_operation(void) usleep(1)
 
 
 /* The following functions must be defined for this platform:
@@ -74,8 +74,8 @@
 #define log_i       MPL_LOGI
 #define log_e       MPL_LOGE
 
-#else
-#error  Gyro driver is missing the system layer implementations.
+//#else
+//#error  Gyro driver is missing the system layer implementations.
 #endif
 
 /* These defines are copied from dmpDefaultMPU6050.c in the general MPL
