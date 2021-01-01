@@ -72,8 +72,8 @@ namespace drv{
 			int start(void);
 			int update(void);
 
-			float* getQuaternion(void);
-			float* getRollPitchYaw(void);
+			void getQuaternion(float* buf);
+			void getRollPitchYaw(float* buf);
 
 			float* getAccel(void);
 			float* getGyro(void);
