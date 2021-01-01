@@ -37,7 +37,8 @@
  * fabsf(float x)
  * min(int a, int b)
  */
-#include "../i2c/i2c.h"
+#include "../../i2c/i2c.h"
+
 #define delay_ms(a) usleep(a*1000)
 #define fabs(x) (((x)>0)?(x):-(x))
 #define min(a,b) ((a)<(b)?(a):(b))
