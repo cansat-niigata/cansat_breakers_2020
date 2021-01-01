@@ -33,6 +33,8 @@
 #define min(a,b) ((a)<(b)?(a):(b))
 #define log_i printf
 #define log_e printf
+#define __no_operation (void)(0)
+
 
 /* The following functions must be defined for this platform:
  * i2c_write(unsigned char slave_addr, unsigned char reg_addr,
@@ -1340,7 +1342,7 @@ int dmp_read_fifo(short *gyro, short *accel, long *quat,
     if (dmp.feature_mask & (DMP_FEATURE_TAP | DMP_FEATURE_ANDROID_ORIENT))
         decode_gesture(fifo_data + ii);
 
-    get_ms(timestamp);
+    //get_ms(timestamp);
     return 0;
 }
 
