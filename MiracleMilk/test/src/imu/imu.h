@@ -8,8 +8,8 @@
 #include "MPU9250-driver/dmpmap.h"
 
 #include "../log/log.h"
-#include "../vectors/vector.h"
-#include "../vectors/quaternion.h"
+#include "./vectors/vector.h"
+#include "./vectors/quaternion.h"
 #include <iostream>
 
 #define MPU9250
