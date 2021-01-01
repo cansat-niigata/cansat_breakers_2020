@@ -12,8 +12,8 @@ int main(void){
     while (true){
         imu.update();
 
-        double* q = imu.getQuaternion();
-        double* rpy = imu.getRollPitchYaw();
+        float* q = imu.getQuaternion();
+        float* rpy = imu.getRollPitchYaw();
         float* acc = imu.getAccel();
         float* gyr = imu.getGyro();
         float* mgn = imu.getCompass();
