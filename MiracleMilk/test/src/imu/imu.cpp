@@ -82,7 +82,7 @@ int imu9250::start(void){
 	std::cout << "Varifing...\n" << std::endl;
 	do{
 		delay_ms((unsigned int)(1000/comm_rate));
-		respond = dmp_read_fifo(raw_gyr,raw_acc,raw_quat,nullptr,&sensors,&counter_fifo);
+		respond = dmp_read_fifo(raw_gyr,raw_acc,raw_quat,&sensors,&counter_fifo);
 	}while (respond != 0 || counter_fifo < 5);
 
 	initialized = 1;
@@ -97,7 +97,7 @@ int imu9250::update(void){
 		return -1;
 	}
 
-	while (dmp_read_fifo(raw_gyr,raw_acc,raw_quat,nullptr,&sensors,&counter_fifo));
+	while (dmp_read_fifo(raw_gyr,raw_acc,raw_quat,&sensors,&counter_fifo));
 	quat = Quaternion(raw_quat[0],raw_quat[1],raw_quat[2],raw_quat[3]).normalize();
 	updateGrav(&grav,&quat);
 	updateRollPitchYaw(rpy,&quat,&grav);
