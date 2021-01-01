@@ -40,7 +40,7 @@ namespace drv{
 			int16_t raw_acc[3];
 			int16_t raw_gyr[3];
 			int16_t raw_mgn[3];
-			long int raw_quat[4];
+			int32_t raw_quat[4];
 			int16_t sensors;
 			uint8_t counter_fifo;
 			uint8_t bbuffer_fifo[256];
