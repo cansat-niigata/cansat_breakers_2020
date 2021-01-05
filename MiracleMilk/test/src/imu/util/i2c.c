@@ -49,7 +49,7 @@ int i2c_write(unsigned char slave_addr,unsigned char reg_addr,unsigned char leng
     return 1;
 }
 
-int8_t i2c_read(unsigned char slave_addr,unsigned char reg_addr,unsigned char length,unsigned char* data) {
+int i2c_read(unsigned char slave_addr,unsigned char reg_addr,unsigned char length,unsigned char* data) {
     int8_t count = 0;
 #ifdef DEBUG
     printf("read %#x %#x %u\n",slave_addr,reg_addr,length);
