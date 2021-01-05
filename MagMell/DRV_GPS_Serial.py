@@ -7,7 +7,6 @@ import threading
 
 from DRV_GPIO import Gpio
 
-
 class Gps_Serial:
 
     threadflag = False

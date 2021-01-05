@@ -405,160 +405,8 @@ class LibIMU:
 		self.DRV = MPU9250(calibAcc=True,calibGyro=True)
 		self.SMPL_RT = sample_time
 
-	"""def getGyro(self):
-		Gyr = self.DRV.readGyro()
-		self.GYR_ROLL += Gyr[0]*self.SMPL_RT
-		self.GYR_PITCH += Gyr[1]*self.SMPL_RT
-		self.GYR_YAW += Gyr[2]*self.SMPL_RT"""
-
-	def getAnglefromAcc(self):
-		Acc = self.DRV.readAccel()
-		self.ACC_ROLL = self.rad2deg(numpy.arctan2(Acc[1],Acc[2]))
-		self.ACC_PITCH = self.rad2deg(numpy.arctan2(-Acc[0],numpy.sqrt(Acc[1]**2+Acc[2]**2)))
-
-	def getYaw_single(self):
-		Mgn = self.DRV.readMag()
-		self.MGN_YAW = numpy.arctan2(Mgn[1]/Mgn[0])
-		return self.MGN_YAW
-
-	def getAnglefromAcc_Mag(self):
-		Acc = self.DRV.readAccel()
-		Mgn = self.DRV.readMag()
-		A = Acc[0]**2+Acc[1]**2
-		self.ACC_ROLL = -self.rad2deg(numpy.arctan2(Acc[1],Acc[2]))
-		self.ACC_PITCH = self.rad2deg(numpy.arctan2(Acc[0],numpy.sqrt(Acc[1]**2+Acc[2]**2)))
-		self.MGN_YAW = self.rad2deg(numpy.arctan2((Acc[0]*Mgn[0]-Acc[1]*Mgn[1])*numpy.sqrt(A),A*Mgn[2]+Acc[2]*(Acc[0]*Mgn[1]+Acc[1]*Mgn[0])))
-
-	def set0Angle(self):
-		Acc = self.DRV.readAccel()
-		Mgn = self.DRV.readMag()
-		self.ACC_ROLL0 = self.rad2deg(numpy.arctan2(Acc[1],Acc[2]))
-		self.ACC_PITCH0 = self.rad2deg(numpy.arctan2(Acc[0],numpy.sqrt(Acc[1]**2+Acc[2]**2)))
-		self.MGN_YAW0 = self.rad2deg(numpy.arctan2(Mgn[1],Mgn[0]))
-
-	def getAnglev3(self,alpha=0.2):#use for runback only
-		while self.Thread_Flag == True:
-			Acc = self.DRV.readAccel()
-			#Gyr = self.DRV.readGyro()
-			Mgn = self.DRV.readMag()
-			self.ACC_ROLL = self.rad2deg(numpy.arctan2(Acc[1],Acc[2])) - self.ACC_ROLL0
-			self.ACC_PITCH = self.rad2deg(numpy.arctan2(Acc[0],numpy.sqrt(Acc[1]**2+Acc[2]**2))) - self.ACC_PITCH0
-			self.MGN_YAW = self.rad2deg(numpy.arctan2(Mgn[1],Mgn[0])) - self.MGN_YAW0
-			"""self.GYR_ROLL += Gyr[0]*self.SMPL_RT
-			self.GYR_PITCH += Gyr[1]*self.SMPL_RT
-			self.GYR_YAW += Gyr[2]*self.SMPL_RT
-			self.EA_ROLL = (self.ACC_ROLL-self.ACC_ROLL0)*alpha+self.GYR_ROLL*(1-alpha)
-			self.EA_PITCH = (self.ACC_PITCH-self.ACC_PITCH0)*alpha+self.GYR_PITCH*(1-alpha)
-			self.EA_YAW = (self.MGN_YAW-self.MGN_YAW0)*alpha+self.GYR_YAW*(1-alpha)
-			"""
-			time.sleep(self.SMPL_RT)
-		return
-
-	def getYawv1(self,abs=False):
-		if abs == False:
-			Mgn = self.DRV.readMag()
-			self.MGN_YAW0 = self.rad2deg(numpy.arctan2(Mgn[1],Mgn[0]))
-		else:
-			self.MGN_YAW0 = 0
-		while self.Thread_Flag:
-			Mgn = self.DRV.readMag()
-			self.MGN_YAW = self.rad2deg(numpy.arctan2(Mgn[1],Mgn[0])) - self.MGN_YAW0
-			if self.MGN_YAW <= -180:
-				self.MGN_YAW = self.MGN_YAW + 360
-			elif self.MGN_YAW >= 180:
-				self.MGN_YAW = self.MGN_YAW - 360
-			time.sleep(self.SMPL_RT)
-		return
-
-	def getYawv2(self):
+	def getAll(self):
 		prev_time = time.time()
-		Gyr = self.DRV.readGyro()
-		Mgn = self.DRV.readMag()
-		self.MGN_YAW0 = self.rad2deg(numpy.arctan2(Mgn[1],Mgn[0]))
-		while self.Thread_Flag:
-			now_time = time.time()
-			Gyr = self.DRV.readGyro()
-			Mgn = self.DRV.readMag()
-			self.sample_time = now_time - prev_time
-			self.MGN_YAW = self.rad2deg(numpy.arctan2(Mgn[1],Mgn[0])) - self.MGN_YAW0
-			if self.MGN_YAW <= -180:
-				self.MGN_YAW = self.MGN_YAW + 360
-			elif self.MGN_YAW >= 180:
-				self.MGN_YAW = self.MGN_YAW - 360
-			self.GYR_YAW += Gyr[2]*self.sample_time
-			if self.GYR_YAW <= -180:
-				self.GYR_YAW += 360
-			elif self.GYR_YAW >= 180:
-				self.GYR_YAW -= 360
-			if abs(self.GYR_YAW - self.MGN_YAW) > 40:
-				self.GYR_YAW = self.MGN_YAW
-			if (self.GYR_YAW > 140)or(self.GYR_YAW < -140):
-				self.EA_YAW = self.GYR_YAW
-			else:
-				self.EA_YAW = self.GYR_YAW*0.9 + self.MGN_YAW*0.1
-			prev_time = now_time
-			time.sleep(self.SMPL_RT)
-		return
-
-	def getPositionv1(self):
-		prev_time = time.time()
-		Acc = self.DRV.readAccel()
-		while self.Thread_Flag == True:
-			now_time = time.time()
-			Acc = self.DRV.readAccel()
-			sample_time = now_time - prev_time
-			self.ACC_VX += Acc[0]*sample_time/self.GRAV_Accel
-			self.ACC_VY += Acc[1]*sample_time/self.GRAV_Accel
-			self.ACC_VZ += Acc[2]*sample_time/self.GRAV_Accel
-			self.ACC_DX += self.ACC_VX*sample_time
-			self.ACC_DY += self.ACC_VY*sample_time
-			self.ACC_DZ += self.ACC_VZ*sample_time
-			prev_time = now_time
-			time.sleep(self.SMPL_RT)
-		return
-
-	def getPos_Yaw(self,abs=False):
-		if abs == False:
-			Mgn = self.DRV.readMag()
-			self.MGN_YAW0 = self.rad2deg(numpy.arctan2(Mgn[1],Mgn[0]))
-		else:
-			self.MGN_YAW0 = 0
-		prev_time = time.time()
-		Acc = self.DRV.readAccel()
-		Mgn = self.DRV.readMag()
-		while self.Thread_Flag:
-			now_time = time.time()
-			Acc = self.DRV.readAccel()
-			Gyr = self.DRV.readGyro()
-			Mgn = self.DRV.readMag()
-			sample_time = now_time - prev_time
-			self.ACC_VX += Acc[0]*sample_time/self.GRAV_Accel
-			self.ACC_VY += Acc[1]*sample_time/self.GRAV_Accel
-			self.ACC_VZ += Acc[2]*sample_time/self.GRAV_Accel
-			self.ACC_DX += self.ACC_VX*sample_time
-			self.ACC_DY += self.ACC_VY*sample_time
-			self.ACC_DZ += self.ACC_VZ*sample_time
-			self.MGN_YAW = self.rad2deg(numpy.arctan2(Mgn[1],Mgn[0])) - self.MGN_YAW0
-			if self.MGN_YAW <= -180:
-				self.MGN_YAW = self.MGN_YAW + 360
-			elif self.MGN_YAW >= 180:
-				self.MGN_YAW = self.MGN_YAW - 360
-			self.GYR_YAW += Gyr[2]*sample_time
-			if self.GYR_YAW <= -180:
-				self.GYR_YAW += 360
-			elif self.GYR_YAW >= 180:
-				self.GYR_YAW -= 360
-			if abs(self.GYR_YAW - self.MGN_YAW) > 40:
-				self.GYR_YAW = self.MGN_YAW
-			if (self.GYR_YAW > 140)or(self.GYR_YAW < -140):
-				self.EA_YAW = self.GYR_YAW
-			else:
-				self.EA_YAW = self.GYR_YAW*0.9 + self.MGN_YAW*0.1
-			prev_time = now_time
-			time.sleep(self.SMPL_RT)
-		return
-
-	def getPos_Yawv2(self):
 		prev_yaw = 0
 		prev_time = time.time()
 		Acc = self.DRV.readAccel()
@@ -568,92 +416,50 @@ class LibIMU:
 		while self.Thread_Flag:
 			now_time = time.time()
 			Acc = self.DRV.readAccel()
+			Gyr = self.DRV.readGyro()
 			Mgn = self.DRV.readMag()
-			self.sample_time = now_time - prev_time
-			self.ACC_VX += Acc[0]*self.sample_time/self.GRAV_Accel
-			self.ACC_VY += Acc[1]*self.sample_time/self.GRAV_Accel
-			self.ACC_VZ += Acc[2]*self.sample_time/self.GRAV_Accel
-			self.ACC_DX += self.ACC_VX*self.sample_time
-			self.ACC_DY += self.ACC_VY*self.sample_time
-			self.ACC_DZ += self.ACC_VZ*self.sample_time
-			self.MGN_YAW = self.rad2deg(numpy.arctan2(Mgn[1],Mgn[0])) - self.MGN_YAW0
+
+			sample_time = now_time - prev_time
+
+			self.ACC_VX += Acc[0]*sample_time
+			self.ACC_VY += Acc[1]*sample_time
+			self.ACC_VZ += Acc[2]*sample_time
+			self.ACC_DX += self.ACC_VX*sample_time
+			self.ACC_DY += self.ACC_VY*sample_time
+			self.ACC_DZ += self.ACC_VZ*sample_time
+			self.GYR_ROLL += Gyr[0]*sample_time
+			self.GYR_PITCH += Gyr[1]*sample_time
+			self.GYR_YAW += Gyr[2]*sample_time
+
+			self.MGN_YAW = self.rad2deg(numpy.arctan2(Mgn[1],Mgn[0]))
+
 			if self.MGN_YAW <= -180:
 				self.MGN_YAW = self.MGN_YAW + 360
 			elif self.MGN_YAW >= 180:
 				self.MGN_YAW = self.MGN_YAW - 360
-			self.GYR_YAW += Gyr[2]*self.sample_time
 			if self.GYR_YAW <= -180:
 				self.GYR_YAW += 360
 			elif self.GYR_YAW >= 180:
 				self.GYR_YAW -= 360
-			if abs(self.GYR_YAW - self.MGN_YAW) > 40:
-				self.GYR_YAW = self.MGN_YAW
-			if (self.GYR_YAW > 140)or(self.GYR_YAW < -140):
-				self.EA_YAW = self.GYR_YAW
-			else:
-				self.EA_YAW = self.GYR_YAW*0.9 + self.MGN_YAW*0.1
-			self.YAW_speed = (self.EA_YAW - prev_yaw)/self.sample_time
-			prev_yaw = self.EA_YAW
+
 			prev_time = now_time
 			time.sleep(self.SMPL_RT)
 		return
 
-	def getGyro(self):
-		prev_time = time.time()
-		Gyr = self.DRV.readGyro()
-		while True:
-			now_time = time.time()
-			Gyr = self.DRV.readGyro()
-			sample_time = now_time - prev_time
-			self.GYR_ROLL += Gyr[0]*sample_time
-			self.GYR_PITCH += Gyr[1]*sample_time
-			self.GYR_YAW += Gyr[2]*sample_time
-			prev_time = now_time
+	def getAngle(self):
+		if abs(self.GYR_YAW - self.MGN_YAW) > 40:
+				self.GYR_YAW = self.MGN_YAW
+		elif (self.GYR_YAW > 140)or(self.GYR_YAW < -140):
+				self.EA_YAW = self.GYR_YAW
+		else:
+				self.EA_YAW = self.GYR_YAW*0.9 + self.MGN_YAW*0.1
 
-	def getGyro_abs(self):
-		prev_time = time.time()
-		Gyr = self.DRV.readGyro()
-		while True:
-			now_time = time.time()
-			Gyr = self.DRV.readGyro()
-			sample_time = now_time - prev_time
-			self.GYR_ROLL += Gyr[0]*sample_time
-			self.GYR_PITCH += Gyr[1]*sample_time
-			self.GYR_YAW += Gyr[2]*sample_time
-			if self.GYR_ROLL > 180:
-				self.GYR_ROLL -= 360
-			elif self.GYR_ROLL < -180:
-				self.GYR_ROLL += 360
-			if self.GYR_PITCH > 180:
-				self.GYR_PITCH -= 360
-			elif self.GYR_PITCH < -180:
-				self.GYR_PITCH += 360
-			if self.GYR_YAW > 180:
-				self.GYR_YAW -= 360
-			elif self.GYR_YAW < -180:
-				self.GYR_YAW += 360
-			prev_time = now_time
+			
 
-	def launch6Axis(self,mode='angle',reset=True):
+	def launch6Axis(self,reset=True):
 		if reset == True:
 			self.resetAll()
 		self.Thread_Flag = True
-		if mode == 'angle':
-			self.imuthread = threading.Thread(target=self.getAnglev3)
-		elif mode == 'position':
-			self.imuthread = threading.Thread(target=self.getPositionv1)
-		elif mode == 'gyro':
-			self.imuthread = threading.Thread(target=self.getGyro)
-		elif mode == 'gyro_abs':
-			self.imuthread = threading.Thread(target=self.getGyro_abs)
-		elif mode == 'pos_yaw':
-			self.imuthread = threading.Thread(target=self.getPos_Yawv2)
-		elif mode == 'yaw':
-			self.imuthread = threading.Thread(target=self.getYawv2)
-		elif mode == 'yaw_abs':
-			self.imuthread = threading.Thread(target=self.getYawv1,args=([True]))
-		else:
-			raise Exception('invalid mode option')
 		self.imuthread.daemon = True#デーモン化　
 		self.imuthread.start()
 
@@ -686,7 +492,6 @@ class LibIMU:
 		print('EA_YAW:',self.EA_YAW)
 
 	
-
 
 	@classmethod
 	def deg2rad(cls,deg):

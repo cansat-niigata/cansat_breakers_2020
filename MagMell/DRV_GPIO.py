@@ -37,7 +37,7 @@ class Gpio:
 			self.gpio.set_pull_up_down(gpionum,pigpio.PUD_DOWN)
 			var = pigpio.RISING_EDGE
 		elif edge == 'EITHER':
-			self.gpio.set_pull_up_down(gpionum,pigpio.PUD_DOWN)
+			self.gpio.set_pull_up_down(gpionum,pigpio.PUD_UP)
 			var = pigpio.EITHER_EDGE
 		else:
 			raise Exception('Invalid EDGE Value')
@@ -411,7 +411,7 @@ class Drill_TB67H450FNG:
 		return self.rotate
 
 	def getRotation(self):
-		return self.rotate*30
+		return self.rotate*30/157
 
 	def testInterrupt(self,gpio,level,tick):
 		print(gpio,level,tick)
