@@ -17,10 +17,10 @@ Quaternion::Quaternion(long* wxyz){
 		z = 0;
 	}
 
-	w = (float)wxyz[0] / 1073741824.0f;
-	x = (float)wxyz[1] / 1073741824.0f;
-	y = (float)wxyz[2] / 1073741824.0f;
-	z = (float)wxyz[3] / 1073741824.0f;
+	w = long2float(wxyz[0]);
+	x = long2float(wxyz[1]);
+	y = long2float(wxyz[2]);
+	z = long2float(wxyz[3]);
 	
 }
 
@@ -54,4 +54,50 @@ Quaternion Quaternion::normalize(void){
 
 Vector Quaternion::toVector(void){//vector型からもどすとき専用!
 	return Vector(x,y,z);
+}
+
+EulerAngle Quaternion::toEulerAngle(void){
+	float yaw = atan2(2*(x*y - w*z),2*(w*w + x*x) - 1);
+	float pitch = -asin(2*(x*z + w*y));
+	float roll = atan2(2*(y*z - w*x),2*(w*w + z*z) -1);
+	return EulerAngle(yaw,pitch,roll);
+}
+
+float Quaternion::long2float(long val){
+	unsigned long mask = 0;
+	unsigned char q = 30;
+	for (unsigned int i = 0; i < q; i++){
+		mask |= (1 << i);
+	}
+	return (val >> q) + ((val&mask))/(float)(2 << (q - 1));
+}
+
+EulerAngle::EulerAngle(void):
+yaw(0),pitch(0),roll(0){	
+}
+
+EulerAngle::EulerAngle(float _yaw,float _pitch,float _roll):
+yaw(_yaw),pitch(_pitch),roll(_roll){
+}
+
+void EulerAngle::toArray(float* ypr,bool deg){
+	if (deg == true){
+		ypr[0] = rad2deg(yaw);
+		ypr[1] = rad2deg(pitch);
+		ypr[2] = rad2deg(roll);
+	}else{
+		ypr[0] = yaw;
+		ypr[1] = pitch;
+		ypr[2] = roll;
+	}	
+}
+
+float EulerAngle::rad2deg(float rad){
+	float ret = (float)(rad*(180.0/M_PI));
+	if (ret > 180){
+		ret -= 360;
+	}else if (ret <= -180){
+		ret += 360;
+	}
+	return ret;
 }

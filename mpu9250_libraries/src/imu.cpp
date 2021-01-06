@@ -3,7 +3,7 @@
 using namespace drv;
 
 imu9250::imu9250(void):
-asence(2),gsence(250),lpf_freq(5),comm_rate(8){
+asence(2),gsence(2000),lpf_freq(5),comm_rate(8){
 }
 
 imu9250::imu9250(unsigned short acc_range,unsigned short gyro_range,unsigned short lfp_cfreq,unsigned int commrate):
@@ -27,6 +27,12 @@ int imu9250::start(void){
 		std::cout << "Failed to set sensors!\n" << std::endl;
 		return -1;
 	} 
+
+	std::cout << "Setting ACCEL sensitivity...\n" << std::endl;
+	if (mpu_set_accel_fsr(asence) != 0){
+		std::cout << "Failed to set GYRO sensitivity...\n" << std::endl;
+		return -1;
+	}
 
 	std::cout << "Setting GYRO sensitivity...\n" << std::endl;
 	if (mpu_set_gyro_fsr(gsence) != 0){
@@ -85,10 +91,10 @@ int imu9250::start(void){
 	}
 
 	std::cout << "Varifing...\n" << std::endl;
-	do{
-		delay_ms((unsigned int)(1000/comm_rate));
-		respond = dmp_read_fifo(raw_gyr,raw_acc,raw_quat,NULL,&sensors,&counter_fifo);
-	}while (respond != 0);
+	interval = (unsigned long)(1000/comm_rate);
+	std::cout << "Running self test...\n" << std::endl;
+	int res = mpu_run_6500_self_test(bias_gyr,bias_acc,true);
+	std::cout << "Result is:" << to_binString(res) << "\n" << std::endl;
 
 	initialized = 1;
 	isready = 1;
@@ -103,18 +109,10 @@ int imu9250::update(void){
 	}
 
 	while (dmp_read_fifo(raw_gyr,raw_acc,raw_quat,nullptr,&sensors,&counter_fifo));
-	quat = Quaternion(raw_quat).normalize();
-	updateGrav(&grav,&quat);
-	updateRollPitchYaw(rpy,&quat,&grav);
-	
+	quat = Quaternion(raw_quat);
+	quat.toEulerAngle().toArray(ypr);
+
 	mpu_get_compass_reg(raw_mgn,nullptr);
-
-	for (unsigned int i = 0; i < 3; i++){
-		rpy[i] = rpy[i]*180/M_PI;
-	}
-
-	rpy[2] = fixAngle(rpy[2]);
-	rpy[1] = -rpy[1];
 
 	for (unsigned int i = 0; i < 3; i++){
 		acc[i] = (float)(raw_acc[i]);
@@ -123,44 +121,6 @@ int imu9250::update(void){
 	}
 
 	return 0;
-}
-
-void imu9250::delay_ms(unsigned int ms){
-	usleep(ms);
-}
-
-float imu9250::fixAngle(float angle){
-	if (angle <= -180){
-		return angle + 360;
-	}else if(angle > 180){
-		return angle - 360;
-	}
-	return angle;
-}
-
-void imu9250::updateGrav(Vector* v,Quaternion* q){
-	v->x = 2*(q->x*q->z - q->w*q->y);
-	v->y = 2*(q->w*q->x + q->y*q->z);
-	v->z = q->w*q->w - q->x*q->x - q->y*q->y +q->z*q->z;
-}
-
-void imu9250::updateRollPitchYaw(float* buf,Quaternion* q,Vector* v){
-	buf[0] = atan(v->y/sqrt(v->x*v->x + v->z*v->z));
-	buf[1] = atan(v->x/sqrt(v->y*v->y + v->z*v->z));
-	buf[2] = atan2(2*(q->x*q->y - q->w*q->z),2*(q->w*q->w + q->x*q->x) - 1);
-}
-
-void imu9250::getQuaternion(float* buf){
-	buf[0] = quat.w;
-	buf[1] = quat.x;
-	buf[2] = quat.y;
-	buf[3] = quat.z;
-}
-
-void imu9250::getRollPitchYaw(float* buf){
-	buf[0] = rpy[0];
-	buf[1] = rpy[1];
-	buf[2] = rpy[2];
 }
 
 float* imu9250::getAccel(void){
@@ -173,4 +133,24 @@ float* imu9250::getGyro(void){
 
 float* imu9250::getCompass(void){
 	return mgn;
+}
+
+Quaternion imu9250::getQuaternion(void){
+	Quaternion ret = quat;
+	return ret;
+}
+
+std::string imu9250::to_binString(unsigned int val)
+{
+    if( !val )
+        return std::string("0");
+    std::string str;
+    while( val != 0 ) {
+        if( (val & 1) == 0 )  // val は偶数か？
+            str.insert(str.begin(), '0');  //  偶数の場合
+        else
+            str.insert(str.begin(), '1');  //  奇数の場合
+        val >>= 1;
+    }
+    return str;
 }

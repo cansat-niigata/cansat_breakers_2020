@@ -42,8 +42,10 @@
 #include "../include/i2c.h"
 #include "../include/others.h"
 
-#define log_i(...)     do {} while (0)
-#define log_e(...)     do {} while (0)
+//#define log_i(...)     do {} while (0)
+#define log_i printf
+//#define log_e(...)     do {} while (0)
+#define log_e printf
 
 #if defined MOTION_DRIVER_TARGET_MSP430
 #include "msp430.h"

@@ -72,7 +72,7 @@ int i2c_read(unsigned char slave_addr,unsigned char reg_addr,unsigned char lengt
         close(fd);
         return(1);
     } else if (count != length){
-        fprintf(stderr,"Short read  from device, expected %d, got %d\n",length,count);
+        fprintf(stderr,"Short read from device, expected %d, got %d\n",length,count);
         close(fd);
         return(1);
     }

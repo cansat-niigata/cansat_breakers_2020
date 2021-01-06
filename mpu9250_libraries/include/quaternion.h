@@ -6,6 +6,18 @@
 
 struct Vector;
 
+struct EulerAngle{
+	float yaw;
+	float pitch;
+	float roll;
+
+	EulerAngle(void);
+	EulerAngle(float _yaw,float _pitch,float _roll);
+	void toArray(float* ypr,bool deg = true);
+	private:
+		static float rad2deg(float rad);
+};
+
 struct Quaternion{
 	public:
 		float w;
@@ -32,4 +44,11 @@ struct Quaternion{
 		Quaternion normalize(void);
 
 		Vector toVector(void);
+
+		EulerAngle toEulerAngle(void);
+		//void getEulerAngle(float* rpy);
+	private:
+		static float long2float(long val);
+		
 };
+
