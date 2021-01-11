@@ -1,7 +1,5 @@
 #pragma once
 
-#include <math.h>
-
 #include "inv_mpu.h"
 #include "inv_mpu_dmp_motion_driver.h"
 #include "dmpKey.h"
@@ -12,7 +10,10 @@
 #include "others.h"
 #include <iostream>
 #include <string>
-#include <unistd.h>
+#include <mutex>
+#include <thread>
+#include <math.h>
+
 
 #define MPU9250
 #define AK8963_SECONDARY
@@ -21,17 +22,19 @@
 namespace drv{
 	class imu9250{
 		private:
-			unsigned char stat;
+			std::mutex mtx;
+			std::thread th;			
 
-			int isready = 0;
-			int initialized = 0;
+			int stat = 0;
 
-			int respond;
+			unsigned char asense_conf;
+			unsigned short gsense_conf;
+			unsigned char lpf_freq;
 			
-			unsigned short asence;
-			unsigned short gsence;
-			unsigned short lpf_freq;
-			//unsigned int msence;
+			float asense;
+			float gsense;
+			float msense = 6.665f; 
+			
 
 			short raw_acc[3];
 			short raw_gyr[3];
@@ -40,37 +43,46 @@ namespace drv{
 
 			long bias_acc[3];
 			long bias_gyr[3];
+			float bias_mgn[3] = {10.4225,-7.5992,-32.2036};
 
 			short sensors;
 			unsigned char counter_fifo;
-			unsigned char buffer_fifo[256];
 
 			Quaternion quat;
-			//Vector grav;
-
-			float ypr[3];
-
-			float acc[3];
-			float gyr[3];
-			float mgn[3];
 
 			unsigned short comm_rate;
-			unsigned long interval; 
+			unsigned int interval; 
 			
+			static float processRawData(short raw,float sense);
 			static std::string to_binString(unsigned int val);
 
 		public:
 			imu9250(void);
-			imu9250(unsigned short acc_range,unsigned short gyro_range,unsigned short lfp_cfreq,unsigned int commrate);
+			imu9250(unsigned char acc_range,unsigned char gyro_range,unsigned char lfp_cfreq,unsigned int commrate);
 			~imu9250(void);
 
-			int start(void);
-			int update(void);
+			float getAccelSense(void);
+			float getGyroSense(void);
+			int setAccelSense(unsigned char fsr);
+			int setGyroSense(unsigned short fsr);
 
-			float* getAccel(void);
-			float* getGyro(void);
-			float* getCompass(void);
+			int start(void);
+			int update(void); 
+
+			void loop(unsigned int _interval);
+
+			void run(void);
+			void terminate(void);
+			bool isRunning(void);
+
+			Vector getAccel(void);
+			Vector getGyro(void);
+			Vector getCompass(void);
 		
 			Quaternion getQuaternion(void);
+
+			float getHeading(void);
+
+			
 	};
 };

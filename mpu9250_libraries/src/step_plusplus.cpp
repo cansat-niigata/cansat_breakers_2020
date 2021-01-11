@@ -26,8 +26,10 @@ int main(void){
         quat.toEulerAngle().toArray(ypr);
         std::cout << "Quaternion:" << std::endl;
         std::cout << "   w:" << quat.w << "   x:" << quat.x << "   y:" << quat.y << "   z:" << quat.z << "\n" << std::endl;
-        std::cout << "Roll Pitch Yaw:" << std::endl;
-        std::cout << "   Yaw:" << ypr[0] << "   Pitch:" << ypr[1] << "   Roll:" << ypr[2] << "\n" << std::endl;
+        std::cout << "Yaw Pitch Roll:" << std::endl;
+        std::cout << "   Yaw:" << ypr[0] << "   Pitch:" << -ypr[2] << "   Roll:" << ypr[1] << "\n" << std::endl;
+        std::cout << "Heading:" << std::endl;
+        std::cout << "  " << mpu925.getHeading() << std::endl;
         delay_ms(2);
     }
     
