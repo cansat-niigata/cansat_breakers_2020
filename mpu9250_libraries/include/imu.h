@@ -20,11 +20,11 @@
 #define COMPASS_ENABLED
 
 namespace drv{
-	class imu9250{
-		private:
-			std::mutex mtx;
-			std::thread th;			
 
+
+
+	class imu9250{
+		private:		
 			int stat = 0;
 
 			unsigned char asense_conf;
@@ -53,14 +53,6 @@ namespace drv{
 			unsigned short comm_rate;
 			unsigned int interval; 
 			
-			static float processRawData(short raw,float sense);
-			static std::string to_binString(unsigned int val);
-
-		public:
-			imu9250(void);
-			imu9250(unsigned char acc_range,unsigned char gyro_range,unsigned char lfp_cfreq,unsigned int commrate);
-			~imu9250(void);
-
 			float getAccelSense(void);
 			float getGyroSense(void);
 			int setAccelSense(unsigned char fsr);
@@ -70,6 +62,16 @@ namespace drv{
 			int update(void); 
 
 			void loop(unsigned int _interval);
+
+			static float processRawData(short raw,float sense);
+			static std::string to_binString(unsigned int val);
+
+			std::mutex mtx;
+
+		public:
+			imu9250(void);
+			//imu9250(unsigned char acc_range,unsigned char gyro_range,unsigned char lfp_cfreq,unsigned int commrate);
+			~imu9250(void);
 
 			void run(void);
 			void terminate(void);
@@ -82,7 +84,5 @@ namespace drv{
 			Quaternion getQuaternion(void);
 
 			float getHeading(void);
-
-			
 	};
-};
+}

@@ -8,11 +8,11 @@ asense_conf(2),gsense_conf(2000),lpf_freq(5),comm_rate(8){
 	gsense = 0.0f;
 }
 
-imu9250::imu9250(unsigned char acc_range,unsigned char gyro_range,unsigned char lfp_cfreq,unsigned int commrate):
+/*imu9250::imu9250(unsigned char acc_range,unsigned char gyro_range,unsigned char lfp_cfreq,unsigned int commrate):
 asense_conf(acc_range),gsense_conf(gyro_range),lpf_freq(lfp_cfreq),comm_rate(commrate){
 	asense = 0;
 	gsense = 0.0f;
-}
+}*/
 
 imu9250::~imu9250(void){
 }
@@ -166,14 +166,14 @@ void imu9250::run(void){
 		start();
 	}
 	stat = 2;
-	th = std::thread(loop,interval);
+	std::thread th(loop,this,interval);
+	th.detach();
 }
 
 void imu9250::terminate(void){
 	if (isRunning()){
 		std::lock_guard<std::mutex>lock(mtx);
 		stat = 1;
-		th.join();
 	}
 }
 
