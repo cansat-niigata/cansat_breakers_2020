@@ -35,3 +35,8 @@ Quaternion Vector::toQuaternion(void){
 Vector Vector::rotate(Quaternion &Q){
 	return Q.multiply(this->toQuaternion()).multiply(Q.invert()).toVector();
 }
+
+std::ostream& operator << (std::ostream& os,const Vector& v){
+	os << "   x:" << v.x << "   y:" << v.y << "   z:" << v.z;
+	return os;
+}

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
+#include <ostream>
 
 struct Vector;
 
@@ -13,7 +14,10 @@ struct EulerAngle{
 
 	EulerAngle(void);
 	EulerAngle(float _yaw,float _pitch,float _roll);
-	void toArray(float* ypr,bool deg = true);
+	void toArray(float* ypr,bool deg = true)const;
+
+	friend std::ostream& operator << (std::ostream& os,const EulerAngle& e);
+
 	private:
 		static float rad2deg(float rad);
 };
@@ -47,6 +51,9 @@ struct Quaternion{
 
 		EulerAngle toEulerAngle(void);
 		//void getEulerAngle(float* rpy);
+
+		friend std::ostream& operator << (std::ostream& os,const Quaternion& q);
+
 	private:
 		static float long2float(long val);
 		

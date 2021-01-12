@@ -33,7 +33,7 @@ namespace drv{
 			
 			float asense;
 			float gsense;
-			float msense = 6.665f; 
+			float msense = 6.665; 
 			
 
 			short raw_acc[3];
@@ -43,7 +43,7 @@ namespace drv{
 
 			long bias_acc[3];
 			long bias_gyr[3];
-			float bias_mgn[3] = {10.4225,-7.5992,-32.2036};
+			float bias_mgn[3] = {-55.2324,-43.4014,-26.2801};
 
 			short sensors;
 			unsigned char counter_fifo;
@@ -79,10 +79,10 @@ namespace drv{
 
 			Vector getAccel(void);
 			Vector getGyro(void);
-			Vector getCompass(void);
+			Vector getCompass(bool calib=true);
 		
 			Quaternion getQuaternion(void);
 
-			float getHeading(void);
+			float getHeading(float macro=NULL);
 	};
 }

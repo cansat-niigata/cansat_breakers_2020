@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <math.h>
+#include <ostream>
 
 struct Quaternion;
 
@@ -26,5 +27,6 @@ struct Vector{
 		Quaternion toQuaternion(void);
 
 		Vector rotate(Quaternion &Q);
-		
+
+		friend std::ostream& operator << (std::ostream& os,const Vector& v);
 };

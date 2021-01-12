@@ -15,6 +15,7 @@ asense_conf(acc_range),gsense_conf(gyro_range),lpf_freq(lfp_cfreq),comm_rate(com
 }*/
 
 imu9250::~imu9250(void){
+	terminate();
 }
 
 float imu9250::getAccelSense(void){
@@ -166,20 +167,20 @@ void imu9250::run(void){
 		start();
 	}
 	stat = 2;
-	std::thread th(loop,this,interval);
+	std::thread th(&imu9250::loop,this,interval);
 	th.detach();
 }
 
 void imu9250::terminate(void){
 	if (isRunning()){
-		std::lock_guard<std::mutex>lock(mtx);
+		std::lock_guard<std::mutex> lock(mtx);
 		stat = 1;
 	}
 }
 
 bool imu9250::isRunning(void){
 	bool res;
-	std::lock_guard<std::mutex>lock(mtx);
+	std::lock_guard<std::mutex> lock(mtx);
 	if (stat == 2){
 		res = true;
 	}else{
@@ -189,51 +190,63 @@ bool imu9250::isRunning(void){
 }
 
 Vector imu9250::getAccel(void){
-	std::lock_guard<std::mutex>lock(mtx);
+	std::lock_guard<std::mutex> lock(mtx);
 	return Vector(processRawData(raw_acc[0],asense),processRawData(raw_acc[1],asense),processRawData(raw_acc[2],asense));
 }
 
 Vector imu9250::getGyro(void){
-	std::lock_guard<std::mutex>lock(mtx);
+	std::lock_guard<std::mutex> lock(mtx);
 	return Vector(processRawData(raw_gyr[0],gsense),processRawData(raw_gyr[1],gsense),processRawData(raw_gyr[2],gsense));
 }
 
-Vector imu9250::getCompass(void){
-	std::lock_guard<std::mutex>lock(mtx);
+Vector imu9250::getCompass(bool calib){
+	std::lock_guard<std::mutex> lock(mtx);
+	if (calib){
+		float mgn[3];
+		mgn[0] = processRawData(raw_mgn[0],msense) + bias_mgn[0];
+		mgn[1] = processRawData(raw_mgn[1],msense) + bias_mgn[1];
+		mgn[2] = processRawData(raw_mgn[2],msense) + bias_mgn[2];
+
+		return Vector(mgn[0],mgn[1],mgn[2]);
+	}
 	return Vector(processRawData(raw_mgn[0],msense),processRawData(raw_mgn[1],msense),processRawData(raw_mgn[2],msense));
 }
 
 Quaternion imu9250::getQuaternion(void){
-	std::lock_guard<std::mutex>lock(mtx);
+	std::lock_guard<std::mutex> lock(mtx);
 	Quaternion ret = quat;
 	return ret;
 }
 
-float imu9250::getHeading(void){
-	std::lock_guard<std::mutex>lock(mtx);
+float imu9250::getHeading(float macro){
+	//std::lock_guard<std::mutex> lock(mtx);
 	float heading;
-	Vector comp = getCompass();
-	if (comp.y + bias_mgn[1] == 0){
-		if (comp.x + bias_mgn[0] < 0){
+	Vector comp = getCompass(true);
+	if (comp.y == 0){
+		if (comp.x < 0){
 			heading = M_PI;
 		}else{
 			heading = 0;
 		}
 	}else{
-		heading = atan2(comp.x + bias_mgn[0],comp.y + bias_mgn[1]);
+		heading = atan2(comp.y,comp.x);
 	}
 
-	if (heading > M_PI){
-		heading -= M_PI*2;
-	}else if (heading < -M_PI){
-		heading += M_PI*2;
+	heading *= 180/M_PI;
+	if (macro != NULL){
+		heading += macro;
+		if (heading > 180){
+			heading -= 360;
+		}else if (heading <= -180){
+			heading += 360;
+		}
 	}
 
-	return heading *= 180/M_PI;
+	return heading;
 }
 
 float imu9250::processRawData(short raw,float sense){
-	return (float)(raw)/sense;
+	return raw/sense;
 }
 
 std::string imu9250::to_binString(unsigned int val)

@@ -1,7 +1,7 @@
 #Makefile
 
 PRG = step_plusplus
-CXXFLAGS = -Wall -g
+CXXFLAGS = -Wall -g -lpthread
 
 dir_inc = ./include
 dir_src = ./src
@@ -36,6 +36,8 @@ imu_h = $(dir_inc)/imu.h
 imu_c = $(dir_src)/imu.cpp
 imu_o = $(dir_obj)/imu.o
 
+#$(dir_bin)/magnet_calibrater.exec:$(dir_src)/magnet_calibrater.cpp $(dir_lib)/libMPU920.a
+#	g++ $(CXXFLAGS) $(dir_src)/magnet_calibrater.cpp -I$(dir_inc) -L$(dir_lib) -lMPU920 -o $(dir_bin)/magnet_calibrater.exec 
 $(dir_bin)/$(PRG).exec:$(dir_src)/$(PRG).cpp $(dir_lib)/libMPU920.a
 	g++ $(CXXFLAGS) $(dir_src)/$(PRG).cpp -I$(dir_inc) -L$(dir_lib) -lMPU920 -o $(dir_bin)/$(PRG).exec 
 $(dir_lib)/libMPU920.a:$(i2c_o) $(others_o) $(inv_mpu_o) $(inv_dmp_o) $(imu_o) $(vector_o) $(quat_o)

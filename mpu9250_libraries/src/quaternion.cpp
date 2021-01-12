@@ -80,7 +80,7 @@ EulerAngle::EulerAngle(float _yaw,float _pitch,float _roll):
 yaw(_yaw),pitch(_pitch),roll(_roll){
 }
 
-void EulerAngle::toArray(float* ypr,bool deg){
+void EulerAngle::toArray(float* ypr,bool deg)const{
 	if (deg == true){
 		ypr[0] = rad2deg(yaw);
 		ypr[1] = rad2deg(pitch);
@@ -100,4 +100,16 @@ float EulerAngle::rad2deg(float rad){
 		ret += 360;
 	}
 	return ret;
+}
+
+std::ostream& operator << (std::ostream& os,const EulerAngle& e){
+	float ypr[3];
+	e.toArray(ypr);
+	os << "   Yaw:" << ypr[0] << "   Pitch:" << -ypr[2] << "   Roll:" << ypr[1];
+	return os;
+}
+
+std::ostream& operator << (std::ostream& os,const Quaternion& q){
+	os << "   w:" << q.w << "   x:" << q.x << "   y:" << q.y << "   z:" << q.z;
+	return os;
 }
