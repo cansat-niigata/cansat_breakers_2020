@@ -6,7 +6,7 @@ import numpy
 
 class Camera:
     serFlag = False
-    def __init__(self,Mx=1024,My=1024,roll=180,path='./img/image_',opath='./img/image_',format_='.jpg',cascadepath='cascade_traffic_cone.xml',target_height=0.8):
+    def __init__(self,Mx=1024,My=1024,roll=180,path='./img/image_',opath='./img/image_',format_='.ong',cascadepath='cascade_traffic_cone.xml',target_height=0.8):
         self.Mx = Mx
         self.My = My
         self.camera = picamera.PiCamera()
