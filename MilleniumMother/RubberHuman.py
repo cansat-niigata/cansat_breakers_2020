@@ -1,21 +1,36 @@
-from Stream import Stream,coordinate,dist
-from Gpio import MotorControl,act,PID,HeatWire
+from Stream import Stream,Coordinate,dist
+from Gpio import Gpio,MotorControl,act,PID,HeatWire
 import Camera
 import time
+
+
+
 
 class Runback:
 	usecompass = False
 	usepid = False
 	usecamera = False
 	debug = False
-	stdc = 150
-	turn_margin = 0
+	stdc = 200
+	turn_margin = 10
 
-	coordinate_goal = coordinate(0,0,[0,0,0])
-	coordinates = [coordinate(0,0,[0,0,0]),coordinate(0,0,[0,0,0])]
+	coordinate_goal = Coordinate(0,0,[0,0,0])
+	coordinates = [Coordinate(0,0,[0,0,0]),Coordinate(0,0,[0,0,0])]
+	distance2goal = 0
+	course2goal = 0
 
-	def __init__(self,MR1=20,MR2=26,ML1=5,ML2=7,RTS=17,usecompass=False,usepid=True,usecamera=False,goal_lat=37.8658,goal_lng=138.9383):
-		self.stream = Stream(RTS)
+	north_angle = 0
+
+	starttime = 0
+
+
+
+	def __init__(self,goal_lat=37.8658,goal_lng=138.9383,usecompass=False,usepid=True,usecamera=False):
+		self.starttime = time.time()
+
+		self.initGpio()
+
+		self.stream = Stream(17)
 		self.stream << 'connection is established.' << 'Can you read me?' << dist.CFSOUT
 
 		self.setGoal(goal_lat,goal_lng)
@@ -37,12 +52,16 @@ class Runback:
 		else:
 			self.usecompass = True
 			self.stream << 'digital compass mode on.' << dist.CFSOUT
-	
-		self.motors = MotorControl(MR1,MR2,ML1,ML2)
+
+		self.stream.startGps()
+		self.stream << 'GPS process is enabled.' << dist.CFSOUT
+
+
+		self.motors = MotorControl(20,26,5,7)
 		self.motors.stopMotor()
 		if (usepid):
 			self.usepid = True
-			self.pid = PID().setParam(0.1,0.5,0).setLimit(100,-100)
+			self.pid = PID().setParam(0.7,0.1,0.5).setLimit(50,-100)
 			self.stream << 'pid control mode on.' << dist.CFSOUT
 
 		self.stream << 'Motors are initialzed.' << dist.CFSOUT
@@ -69,9 +88,11 @@ class Runback:
 		self.stream << r"|____/ \__, |___/\__\___|_| |_| |_| |_|  \___| \_(_)_(_)___/ "
 		self.stream << r"       |___/                                                 " << dist.CFSOUT
 		
-		self.stream << "Welcome to Breaker's Runback Misson Program rev.1.85" << dist.CFSOUT
+		self.stream << "Welcome to Breakers' Runback Misson Program rev.1.87" << dist.CFSOUT
 
 	def moveForward(self,timeout=5):
+		self.stream << str(self.getTime()) + ":moveForward(" + str(timeout) + ")" << dist.CFSOUT
+
 		start = time.time()
 		dt = 0
 		tag = self.stream.readImu()[0]
@@ -80,93 +101,131 @@ class Runback:
 			while dt < timeout:
 				dt = time.time() - start
 				datas = self.stream.readImu()
-				err = datas[0] - tag
+				err = self.fixAngle(datas[0],tag)#err = datas[0] - tag
 				if (self.usepid):
 					c = self.pid.execute(err,datas[5],dt)
-					if (self.debug):
-						self.stream << 'pid:'+str(c) << 'vect:'+str(datas[0]) << 'gyr:'+str(datas[5]) << dist.CSOUT
-					self.motors.setSpeed(self.stdc - c,self.stdc + c)
+					if self.debug:
+						self.stream << 'dt:'+str(dt) << 'err:'+str(err) << 'pid:'+str(c) << 'vect:'+str(datas[0]) << 'gyr:'+str(datas[5]) << dist.COUT
+					self.motors.setSpeed(self.stdc + c,self.stdc - c)
 			self.motors.stopMotor()
+		self.pid.reset()
+		return self
+
+	def moveto(self,deg=0,timeout=8):
+		self.stream << str(self.getTime()) + ":moveto(" + str(deg) + "," + str(timeout) +")" << dist.CFSOUT
+		start = time.time()
+		dt = 0
+		tag = deg
+		self.motors.setSpeed(self.stdc,self.stdc).spinEither()
+		if timeout != 0:
+			while dt < timeout:
+				dt = time.time() - start
+				datas = self.stream.readImu()
+				err = self.fixAngle(datas[0],tag)#err = datas[0] - tag
+				if (self.usepid):
+					c = self.pid.execute(err,datas[5],dt)
+					if self.debug:
+						self.stream << 'dt:'+str(dt) << 'err:'+str(err) << 'pid:'+str(c) << 'vect:'+str(datas[0]) << 'gyr:'+str(datas[5]) << dist.COUT
+					self.motors.setSpeed(self.stdc + c,self.stdc - c)
+		self.pid.reset()
+		return self
+
+	def movetoGoal(self,timeout=8):
+		self.moveto(self.course2goal)
+
+	def stop(self):
+		self.motors.stopMotor()
 		return self
 	
-	def faceto(self,deg=0,timeout=5,):
+	def faceto(self,deg=0,timeout=5):
+		self.stream << str(self.getTime()) + ":faceTo(" + str(deg) + "," + str(timeout) + ")" << dist.CFSOUT
+
 		if self.usecompass:
 			ref_angle = self.stream.readImu()[6]
 		else:
-			ref_angle = self.stream.readImu()[0]
+			ref_angle = self.north_angle
 		tag = self.fixAngle(deg,ref_angle)
 
+		if self.debug:
+			self.stream << 'tag:'+str(tag) << dist.COUT
+
 		start = time.time()
-		if tag > 0:
-			self.motors.setSpeed(0,255).spinMotor(act.TURN_RIGHT)
-			while time.time() - start < timeout:
-				if self.usecompass:
-					heading = self.fixAngle(self.stream.readImu()[6],ref_angle)
-				else:
-					heading = self.fixAngle(self.stream.readImu()[0],ref_angle)
-				if heading > tag:
+		dt = 0
+		tag = self.fixAngle(deg,self.stream.readImu()[0],mode='m')
+		self.motors.setSpeed(self.stdc,self.stdc).spinEither()
+		if timeout != 0:
+			while dt < timeout:
+				dt = time.time() - start
+				datas = self.stream.readImu()
+				err = self.fixAngle(datas[0],tag)#err = datas[0] - tag
+				if self.usepid:
+					c = self.pid.execute(err,datas[5],dt)
+					if self.debug:
+						self.stream << 'dt:'+str(dt) << 'err:'+str(err) << 'pid:'+str(c) << 'vect:'+str(datas[0]) << 'gyr:'+str(datas[5]) << dist.COUT
+					self.motors.setSpeed(self.stdc + c,self.stdc - c)
+				if abs(err) <= self.turn_margin:
 					break
-		elif tag < 0:
-			self.motors.setSpeed(255,0).spinMotor(act.TURN_LEFT)
-			while time.time() - start < timeout:
-				if self.usecompass:
-					heading = self.fixAngle(self.stream.readImu()[6],ref_angle)
-				else:
-					heading = self.fixAngle(self.stream.readImu()[0],ref_angle)
-				if heading < tag:
-					break
+			self.motors.brakeMotor()
+		self.pid.reset()
+		self.motors.brakeMotor()
 		return self
 
 	def facetoGoal(self,timeout=5):
-		return self.faceto(self.getDistance_CoursetoGoal(),timeout)
+		return self.faceto(self.getDistance_CoursetoGoal()['courseS2G'],timeout)
 
-	def turnto(self,deg,timeout=5):
-		if self.usecompass:
-			ref_angle = self.stream.readImu()[6]
-		else:
-			ref_angle = self.stream.readImu()[0]
-		tag = deg
-
+	def turnto(self,deg=0,timeout=5):
 		start = time.time()
-		if tag > 0:
-			self.motors.setSpeed(0,255).spinMotor(act.TURN_RIGHT)
-			while time.time() - start < timeout:
-				if self.usecompass:
-					heading = self.fixAngle(self.stream.readImu()[6],ref_angle)
-				else:
-					heading = self.fixAngle(self.stream.readImu()[0],ref_angle)
-				if heading > tag:
+		dt = 0
+		tag = self.fixAngle(deg,self.stream.readImu()[0],mode='p')
+		self.motors.setSpeed(self.stdc,self.stdc).spinEither()
+		if timeout != 0:
+			while dt < timeout:
+				dt = time.time() - start
+				datas = self.stream.readImu()
+				err = self.fixAngle(datas[0],tag)#err = datas[0] - tag
+				if self.usepid:
+					c = self.pid.execute(err,datas[5],dt)
+					if self.debug:
+						self.stream << 'dt:'+str(dt) << 'err:'+str(err) << 'pid:'+str(c) << 'vect:'+str(datas[0]) << 'gyr:'+str(datas[5]) << dist.COUT
+					self.motors.setSpeed(self.stdc + c,self.stdc - c)
+				if abs(err) <= self.turn_margin:
 					break
-		elif tag < 0:
-			self.motors.setSpeed(255,0).spinMotor(act.TURN_LEFT)
-			while time.time() - start < timeout:
-				if self.usecompass:
-					heading = self.fixAngle(self.stream.readImu()[6],ref_angle)
-				else:
-					heading = self.fixAngle(self.stream.readImu()[0],ref_angle)
-				if heading < tag:
-					break
+			self.motors.brakeMotor()
+		self.pid.reset()
 		return self
 
 	def setGoal(self,lat,lng):
-		self.coordinate_goal = coordinate(lat,lng,[0,0,0])
+		self.coordinate_goal = Coordinate(lat,lng,[0,0,0])
+		self.stream << "Goal is updated. newer:" + self.coordinate_goal.toString() << dist.CFSOUT  
 		return self
 
 	def updateGPS(self):
 		self.coordinates = self.stream.updateGps().getGpsData()
+		if self.stream.UPDATE:
+			self.stream << "GPS is updated. newer:" + self.coordinates[1].toString() << dist.CFSOUT
+			dicts = self.getDistance_CoursetoGoal()
+			self.distance2goal = dicts['distance']
+			self.course2goal = dicts['courseS2G']
+		else:
+			self.stream << "GPS is not updated!" << dist.CFSOUT
+			self.stop().updateGPS()
 		return self
 
-	def getGPSReference(self):
+	def getGPSCoordinate(self):
 		return self.coordinates
 
 	def getDistance_Course(self,coordinate_start,coordinate_end):
-		return coordinate_end.getDistanceFrom(coordinate_start)
+		result = coordinate_end.getDistanceFrom(coordinate_start)
+		self.stream << "distance :" + str(result['distance']) + " course :" + str(result['courseS2G']) << dist.CFSOUT 
+		return result
 
 	def getDistance_CoursetoGoal(self):
-		return self.coordinates[1].getDistanceFrom(self.coordinate_goal)
+		self.stream << "Processing Distance & Course to Goal..." << dist.CFSOUT
+		return self.getDistance_Course(self.coordinates[1],self.coordinate_goal)
 
 	def getDistance_CoursefromPrev(self):
-		return self.coordinates[1].getDistanceFrom(self.coordinates[0])
+		self.stream << "Processing Distance & Course from Previous Ref..." << dist.CFSOUT
+		return self.getDistance_Course(self.coordinates[0],self.coordinates[1])
 		
 	def detectGoal(self):
 		if self.usecamera:
@@ -185,22 +244,56 @@ class Runback:
 				break
 		return self
 			
-	def drill(self):
-		MotorControl(6,13,11,8,80,255).spinEither().wait(2.8).spinMotor(act.RIGHT_STOP).wait(5.0).spinMotor(act.RIGHT_INVERT).wait(3.0).stopMotor().terminate()
+	def drill(self,elv1=6,elv2=13,head1=8,head2=11):
+		MotorControl(elv1,elv2,head1,head2,80,255).spinEither().wait(2.8).spinMotor(act.RIGHT_STOP).wait(3.0).spinMotor(act.RIGHT_INVERT).wait(3.0).stopMotor().terminate()
+		return self
+
+	def getTime(self):
+		return time.time() - self.starttime
+
+	def setNorth(self):
+		self.north_angle = self.stream.readImu()[0]
+		self.stream << "North Angle is Updated. newer:" + str(self.north_angle) << dist.CFSOUT
+		return self
+
+	def debugOn(self):
+		self.debug = True
 		return self
 
 	@staticmethod
-	def fixAngle(angle,ref_angle):
-		agl = angle - ref_angle
+	def fixAngle(angle,ref_angle,mode='m'):
+		if (mode =='p'):
+			agl = angle + ref_angle
+		else:
+			agl = angle - ref_angle
 		if agl > 180:
 			return agl - 360
 		elif agl <= -180:
 			return agl + 360
 		return agl
 
+	def initGpio(self):
+		gpio = Gpio()
+		gpio.toggleOff(20)
+		gpio.toggleOff(26)
+		gpio.toggleOff(5)
+		gpio.toggleOff(7)
+		gpio.toggleOff(8)
+		gpio.toggleOff(11)
+		gpio.toggleOff(6)
+		gpio.toggleOff(13)
+		gpio.toggleOff(25)
+		gpio.toggleOn(12)
+		gpio.toggleOn(21)
+		gpio.terminate()
+		return self
+
+	def test(self):
+		while self.updateGPS().distance2goal > 5:
+			self.movetoGoal()
+		self.stop().stream << "goal!" << dist.CFSOUT
+	
+
 
 if __name__ == '__main__':
-	machine = Runback(usecompass=True,usepid=False,usecamera=False)
-	while machine.updateGPS().getDistance_CoursetoGoal()['distance'] > 3:
-		machine.facetoGoal().moveForward()
-	machine.stream << "goal!" << dist.CFSOUT
+	Runback(usecompass=True,usepid=True,usecamera=False).test()

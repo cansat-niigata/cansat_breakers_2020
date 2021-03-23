@@ -1,6 +1,6 @@
 #Makefile
 
-PRG = imuget#動作確認のときはsample
+PRG = imustreaming#動作確認のときはsample
 CXXFLAGS = -Wall -g -pthread
 
 dir_inc = ./include

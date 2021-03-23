@@ -4,17 +4,31 @@ import numpy
 import time
 import datetime
 import subprocess
-from enum import Flag,auto
+import threading
 import pigpio
+from enum import Flag,auto
 
-class coordinate:
-	timestamp = 0
+
+class Coordinate:
+	timestamp = [0,0,0]
 	latitude = 0
 	longitude = 0
 	def __init__(self,lat,lng,timestamp):
 		self.latitude = lat
 		self.longitude = lng
-		self.timestamp = time.time()
+		self.timestamp = [0,0,0]
+
+	def __eq__(self,other):
+		if (self.latitude == other.latitude) and (self.longitude == other.longitude):
+			return True
+		else:
+			return False
+
+	def __ne__(self,other):
+		if self == other:
+			return False
+		else:
+			return True
 
 	def toString(self):
 		h = self.timestamp[0] if self.timestamp[0] < 24 else self.timestamp[0] - 24
@@ -27,12 +41,12 @@ class coordinate:
 		lat1 = self.latitude
 		lng1 = self.longitude
 		#差異が無ければ0
-		if numpy.isclose(lat0,lat1) and numpy.isclose(lng0,lng1):
+		"""if numpy.isclose(lat0,lat1) and numpy.isclose(lng0,lng1):
 			return {
 				'distance':0,
 				'courseS2G':0,
 				'courseG2S':0
-			}
+			}"""
 	
 		#WGS84
 		a = 6378137.0#赤道半径
@@ -48,7 +62,7 @@ class coordinate:
 		U0 = numpy.arctan((1-f)*numpy.tan(rlat0))
 		U1 = numpy.arctan((1-f)*numpy.tan(rlat1))
 		#2点間の経度差  
-		L = rlng0-rlng1
+		L = rlng1-rlng0
 		#補助球上の経度(初期化)
 		Lambda=L
 
@@ -57,7 +71,7 @@ class coordinate:
 		cosU0 = numpy.cos(U0)
 		cosU1 = numpy.cos(U1)
 	
-		for i in range(1000):
+		for _ in range(1000):
 			sinLmd=numpy.sin(Lambda)
 			cosLmd=numpy.cos(Lambda)
 		
@@ -86,7 +100,12 @@ class coordinate:
 
 		distance=b*A*(sigma-deltas)
 		course0to1=numpy.rad2deg(numpy.arctan2(cosU1*sinLmd,cosU0*sinU1-sinU0*cosU1*cosLmd))
-		course1to0=numpy.rad2deg(numpy.arctan2(cosU0*sinLmd,-sinU0*cosU1+cosU0*sinU1*cosLmd))
+		course1to0=numpy.rad2deg(numpy.arctan2(cosU0*sinLmd,-sinU0*cosU1+cosU0*sinU1*cosLmd) + numpy.pi)
+
+		if course1to0 > 180:
+			course1to0 -= 360
+		elif course1to0 < -180:
+			course1to0 += 360
 
 		return {
 			'distance':distance,
@@ -104,6 +123,9 @@ class dist(Flag):
 	CFSOUT = COUT | FOUT | SOUT
 
 class Stream:
+
+	DEBUG = False
+	RUNGPS = False
 	
 	string_buffer_tx = []
 	string_buffer_rx = []
@@ -112,10 +134,11 @@ class Stream:
 	DOUT = dist.CFOUT
 
 	procrunning = False
-	coordinate_now = coordinate(0,0,0)
-	coordinate_prev = coordinate(0,0,0)
+	coordinate_now = Coordinate(0,0,0)
+	coordinate_prev = Coordinate(0,0,0)
+
+	UPDATE = False
 	
-	motors = {}
 
 	def __init__(self,pinBusy,ser='/dev/ttyAMA0',baudrate=19200,timeout=1,timezone=9,fmt='dd',log='./log.txt',gpslog='./gpslog.txt'):
 		self.log = log
@@ -141,7 +164,7 @@ class Stream:
 		return self
 
 	def __rshift__(self,something):
-		if isinstance(something,coordinate):
+		if isinstance(something,Coordinate):
 			something = self.readGpsData()
 		else:
 			something = self.readSerialLine()
@@ -161,11 +184,11 @@ class Stream:
 
 	def out(self,distination=None):
 		for string in self.string_buffer_tx:
-			if distination & dist.COUT:
+			if (distination & dist.COUT):
 				self.stdout(string)
-			if distination & dist.FOUT:
+			if (distination & dist.FOUT):
 				self.dump(string)
-			if distination & dist.SOUT:
+			if (distination & dist.SOUT):
 				self.transmit(string)
 		self.clear_tx()
 		return self
@@ -192,15 +215,32 @@ class Stream:
 		print(string)
 		return self
 
-	def readSerialLine(self):
+	def startGps(self):
+		self.s.readline()
+		self.clear_rx()
+		self.RUNGPS = True
+		self.gpsprocess = threading.Thread(target=self.GpsWorker,args=())
+		self.gpsprocess.setDaemon(True)
+		self.gpsprocess.start()
+
+	def stopGps(self):
+		self.RUNGPS = False
+		self.gpsprocess._stop()
+
+	def GpsWorker(self):
+		while self.RUNGPS:
+			self.readGpsData()
+
+	def readSerialLine(self,append=False):
 		string = self.s.readline()
-		self.string_buffer_rx.append(string)
+		if append:
+			self.string_buffer_rx.append(string)
 		return string
 
-	def readSerialLines(self):
+	"""def readSerialLines(self):
 		self.clear_rx()
 		self.string_buffer_rx = self.s.readlines()
-		return self
+		return self"""
 
 	def stopSerial(self):
 		self.s.close()
@@ -208,20 +248,21 @@ class Stream:
 
 	def readGpsData(self):
 		while self.s.in_waiting:
-			self.readSerialLine()
-		for strings in self.string_buffer_rx:
-			string = strings.decode('utf-8')
-			for char in string:
+			string = self.readSerialLine()
+			for char in string.decode('utf-8'):
 				self.gps.update(char)
-
-		self.clear_rx()
-		return coordinate(self.gps.latitude[0],self.gps.longitude[0],self.gps.timestamp)
+		return self
 
 	def updateGps(self):
-		self.coordinate_prev = self.coordinate_now
-		self.coordinate_now = self.readGpsData()
-		with open(self.gpslog,'a') as f:
-			f.write(self.coordinate_now.toString+'\n')
+		new = Coordinate(self.gps.latitude[0],self.gps.longitude[0],self.gps.timestamp)
+		if new != self.coordinate_now:
+			self.coordinate_prev = self.coordinate_now
+			self.coordinate_now = Coordinate(self.gps.latitude[0],self.gps.longitude[0],self.gps.timestamp)
+			with open(self.gpslog,'a') as f:
+				f.write(self.coordinate_now.toString()+'\n')
+			self.UPDATE = True
+		else:
+			self.UPDATE = False
 		time.sleep(0.5)
 		return self
 

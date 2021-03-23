@@ -123,6 +123,14 @@ class MotorControl:#for TB67H450
 		self.status = act.STOP
 		return self
 
+	def brakeMotor(self):
+		self.gpio.toggleOn(self.R1)
+		self.gpio.toggleOn(self.R2)
+		self.gpio.toggleOn(self.L1)
+		self.gpio.toggleOn(self.L2)
+		self.status = act.STOP
+		return self
+
 	def setSpeed(self,speed_R=128,speed_L=128):
 		self.R_speed = speed_R
 		self.L_speed = speed_L

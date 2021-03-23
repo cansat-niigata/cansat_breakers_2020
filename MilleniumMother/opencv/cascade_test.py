@@ -63,24 +63,6 @@ class detecter:
         cv2.imwrite('masked_'+self.filename,self.img_masked)
         return self
 
-    def detectbyCascade(self,img=None):
-        if img == None:
-            img_masked_gray = cv2.cvtColor(self.img_masked,cv2.COLOR_BGR2GRAY)
-            targets = self.cascade.detectMultiScale(img_masked_gray)
-        else:
-            img_gray = cv2.cvtColor(self.img,cv2.COLOR_BGR2GRAY)
-            targets = self.cascade.detectMultiScale(img_gray)
-        
-        average = 0
-        for (tx,ty,tw,th) in targets:
-            cv2.rectangle(self.img,(tx,ty),(tx+tw,ty+th),(0,0,255),thickness=2)
-            average += tx+tw/2
-            if len(targets) == 0:
-                return False
-            average/(len(targets)*self.img.shape[1])
-        cv2.imwrite('detected_'+self.filename,self.img)
-        return average
-
     def detectbyCascadev2(self):
         self.inrangeHSV()
         img_gray = cv2.cvtColor(self.img_orig,cv2.COLOR_BGR2GRAY)
