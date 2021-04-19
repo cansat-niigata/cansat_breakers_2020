@@ -11,7 +11,7 @@ class Runback:
 	usepid = False
 	usecamera = False
 	debug = False
-	stdc = 200
+	stdc = 150
 	turn_margin = 10
 
 	coordinate_goal = Coordinate(0,0,[0,0,0])
@@ -61,7 +61,7 @@ class Runback:
 		self.motors.stopMotor()
 		if (usepid):
 			self.usepid = True
-			self.pid = PID().setParam(0.7,0.1,0.5).setLimit(50,-100)
+			self.pid = PID().setParam(0.4,0.1,0.2).setLimit(100,-100)
 			self.stream << 'pid control mode on.' << dist.CFSOUT
 
 		self.stream << 'Motors are initialzed.' << dist.CFSOUT
@@ -91,7 +91,7 @@ class Runback:
 		self.stream << "Welcome to Breakers' Runback Misson Program rev.1.87" << dist.CFSOUT
 
 	def moveForward(self,timeout=5):
-		self.stream << str(self.getTime()) + ":moveForward(" + str(timeout) + ")" << dist.CFSOUT
+		self.stream << str(self.getTime()) + ":moveForward(timeout=" + str(timeout) + ")" << dist.CFSOUT
 
 		start = time.time()
 		dt = 0
@@ -112,7 +112,7 @@ class Runback:
 		return self
 
 	def moveto(self,deg=0,timeout=8):
-		self.stream << str(self.getTime()) + ":moveto(" + str(deg) + "," + str(timeout) +")" << dist.CFSOUT
+		self.stream << str(self.getTime()) + ":moveto(deg=" + str(deg) + ",timeout=" + str(timeout) +")" << dist.CFSOUT
 		start = time.time()
 		dt = 0
 		tag = deg
@@ -138,7 +138,7 @@ class Runback:
 		return self
 	
 	def faceto(self,deg=0,timeout=5):
-		self.stream << str(self.getTime()) + ":faceTo(" + str(deg) + "," + str(timeout) + ")" << dist.CFSOUT
+		self.stream << str(self.getTime()) + ":faceto(deg=" + str(deg) + ",timeout=" + str(timeout) + ")" << dist.CFSOUT
 
 		if self.usecompass:
 			ref_angle = self.stream.readImu()[6]
@@ -200,6 +200,7 @@ class Runback:
 		return self
 
 	def updateGPS(self):
+		self.stream << str(self.getTime()) + ":updateGPS()" << dist.CFSOUT
 		self.coordinates = self.stream.updateGps().getGpsData()
 		if self.stream.UPDATE:
 			self.stream << "GPS is updated. newer:" + self.coordinates[1].toString() << dist.CFSOUT
@@ -215,6 +216,7 @@ class Runback:
 		return self.coordinates
 
 	def getDistance_Course(self,coordinate_start,coordinate_end):
+		self.stream << str(self.getTime()) + ":getDistance_Course" << dist.CFSOUT
 		result = coordinate_end.getDistanceFrom(coordinate_start)
 		self.stream << "distance :" + str(result['distance']) + " course :" + str(result['courseS2G']) << dist.CFSOUT 
 		return result

@@ -155,6 +155,7 @@ class Stream:
 		self.s = serial.Serial(ser,baudrate=baudrate,timeout=timeout)
 		self.command('ECIO')
 		self.gps = micropyGPS.MicropyGPS(timezone,fmt)
+		self.gpslock = threading.Lock()
 
 	def __lshift__(self,something):
 		if isinstance(something,dist):
@@ -232,7 +233,11 @@ class Stream:
 			self.readGpsData()
 
 	def readSerialLine(self,append=False):
-		string = self.s.readline()
+		try:
+			string = self.s.readline()
+		except UnicodeDecodeError:
+			return self.readSerialLine(append)
+
 		if append:
 			self.string_buffer_rx.append(string)
 		return string
@@ -248,9 +253,10 @@ class Stream:
 
 	def readGpsData(self):
 		while self.s.in_waiting:
-			string = self.readSerialLine()
-			for char in string.decode('utf-8'):
-				self.gps.update(char)
+			with self.gpslock:
+				string = self.readSerialLine()
+				for char in string.decode('utf-8'):
+					self.gps.update(char)
 		return self
 
 	def updateGps(self):
