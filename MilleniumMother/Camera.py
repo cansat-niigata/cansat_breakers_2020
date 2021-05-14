@@ -5,7 +5,7 @@ import numpy
 
 class Camera:
 	serFlag = False
-	def __init__(self,Mx=1024,My=1024,roll=180,path='./img/image_',opath='./img/image_',format_='.png',cascadepath='cascade_traffic_cone.xml'):
+	def __init__(self,Mx=1024,My=1024,roll=180,path='./img/image_',opath='./img/image_',format_='.png'):
 		self.Mx = Mx
 		self.My = My
 		self.camera = picamera.PiCamera()
@@ -17,7 +17,6 @@ class Camera:
 		self.format = format_
 		self.filename = self.path+str(self.num)+self.format
 		self.outfilename = self.opath+str(self.num)+self.format
-		self.cascade = cv2.CascadeClassifier(cascadepath)
 
 	def getImage(self):
 		self.num = self.num+1
