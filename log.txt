@@ -1,0 +1,62 @@
+connection is established.
+Can you read me?
+Goal is updated. newer:00:00:00:37.8658,138.9383
+goal is 00:00:00:37.8658,138.9383
+imu is started.
+OK!
+GPS process is enabled.
+pid control mode on.
+Motors are initialzed.
+HeatWire is ready.
+Camera is disabled.
+ ____                 _                                      
+| __ ) _ __ ___  __ _| | _____ _ __ ___     _____     ____   
+|  _ \| '__/ _ \/ _` | |/ / _ \ '__/ __|   /\/\/\/\  |  o |  
+| |_) | | |  __/ (_| |   <  __/ |  \__ \  |\/\/\/\/|/ ___\|  
+|____/|_|  \___|\__,_|_|\_\___|_|  |___/  |/\/\/\/\/_/       
+                                          |_|_| |_|_|        
+ ____            _                                  _   ___  
+/ ___| _   _ ___| |_ ___ _ __ ___    _ __ _____   _/ | ( _ ) 
+\___ \| | | / __| __/ _ \ '_ ` _ \  | '__/ _ \ \ / / | / _ \ 
+ ___) | |_| \__ \ ||  __/ | | | | | | | |  __/\ V /| || (_) /
+|____/ \__, |___/\__\___|_| |_| |_| |_|  \___| \_(_)_(_)___/ 
+       |___/                                                 
+Welcome to Breakers' Runback Misson Program rev.1.87
+Goal is updated. newer:00:00:00:37.8665106,138.9386053
+North Angle is Updated. newer:0.861902
+18.120615005493164:updateGPS()
+GPS is updated. newer:16:51:14:37.86637,138.93869333333333
+Processing Distance & Course to Goal...
+18.45854091644287:getDistance_Course
+distance :17.422480366166262 course :-26.39827977755862
+18.680641174316406:moveto(deg=-26.39827977755862,timeout=8)
+26.810642957687378:updateGPS()
+GPS is updated. newer:16:51:19:37.86637833333333,138.93868833333335
+Processing Distance & Course to Goal...
+27.167102098464966:getDistance_Course
+distance :16.398379820260043 course :-26.458235779252117
+27.3928279876709:moveto(deg=-26.458235779252117,timeout=8)
+35.571901082992554:updateGPS()
+GPS is updated. newer:16:51:23:37.866391666666665,138.93867666666668
+Processing Distance & Course to Goal...
+35.906102895736694:getDistance_Course
+distance :14.618391888437346 course :-25.44041611535156
+36.12842297554016:moveto(deg=-25.44041611535156,timeout=8)
+44.26713991165161:updateGPS()
+GPS is updated. newer:16:51:27:37.86642,138.93866166666666
+Processing Distance & Course to Goal...
+44.627137184143066:getDistance_Course
+distance :11.212656536819074 course :-26.25314843591073
+44.849175214767456:moveto(deg=-26.25314843591073,timeout=8)
+52.971745014190674:updateGPS()
+GPS is updated. newer:16:51:31:37.866443333333336,138.93865333333332
+Processing Distance & Course to Goal...
+53.32676911354065:getDistance_Course
+distance :8.579483836065066 course :-29.513673051296294
+53.54952001571655:moveto(deg=-29.513673051296294,timeout=8)
+61.67805814743042:updateGPS()
+GPS is updated. newer:16:51:36:37.86647166666667,138.93862666666666
+Processing Distance & Course to Goal...
+62.01060199737549:getDistance_Course
+distance :4.712632764732495 course :-23.51227288850424
+goal!

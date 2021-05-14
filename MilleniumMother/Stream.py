@@ -2,7 +2,6 @@ import serial
 import micropyGPS
 import numpy
 import time
-import datetime
 import subprocess
 import threading
 import pigpio
@@ -10,13 +9,13 @@ from enum import Flag,auto
 
 
 class Coordinate:
-	timestamp = [0,0,0]
+	timestamp = (0,0,0)
 	latitude = 0
 	longitude = 0
 	def __init__(self,lat,lng,timestamp):
 		self.latitude = lat
 		self.longitude = lng
-		self.timestamp = [0,0,0]
+		self.timestamp = timestamp
 
 	def __eq__(self,other):
 		if (self.latitude == other.latitude) and (self.longitude == other.longitude):
@@ -126,6 +125,7 @@ class Stream:
 
 	DEBUG = False
 	RUNGPS = False
+	CHKCSE = False 
 	
 	string_buffer_tx = []
 	string_buffer_rx = []
@@ -134,10 +134,15 @@ class Stream:
 	DOUT = dist.CFOUT
 
 	procrunning = False
-	coordinate_now = Coordinate(0,0,0)
-	coordinate_prev = Coordinate(0,0,0)
+	coordinate_now = Coordinate(0,0,(0,0,0))
+	coordinate_prev = Coordinate(0,0,(0,0,0))
+	stack_threshold = 3
+	course_valid_threshold = 15
 
 	UPDATE = False
+	STACK = False
+
+
 	
 
 	def __init__(self,pinBusy,ser='/dev/ttyAMA0',baudrate=19200,timeout=1,timezone=9,fmt='dd',log='./log.txt',gpslog='./gpslog.txt'):
@@ -234,7 +239,7 @@ class Stream:
 
 	def readSerialLine(self,append=False):
 		try:
-			string = self.s.readline()
+			string = self.s.readline().decode('utf-8')
 		except UnicodeDecodeError:
 			return self.readSerialLine(append)
 
@@ -255,21 +260,33 @@ class Stream:
 		while self.s.in_waiting:
 			with self.gpslock:
 				string = self.readSerialLine()
-				for char in string.decode('utf-8'):
+				for char in string:
 					self.gps.update(char)
 		return self
 
 	def updateGps(self):
-		new = Coordinate(self.gps.latitude[0],self.gps.longitude[0],self.gps.timestamp)
-		if new != self.coordinate_now:
-			self.coordinate_prev = self.coordinate_now
-			self.coordinate_now = Coordinate(self.gps.latitude[0],self.gps.longitude[0],self.gps.timestamp)
-			with open(self.gpslog,'a') as f:
-				f.write(self.coordinate_now.toString()+'\n')
-			self.UPDATE = True
-		else:
+		with self.gpslock:
+			new = Coordinate(self.gps.latitude[0],self.gps.longitude[0],self.gps.timestamp)
+		if new == self.coordinate_now:
 			self.UPDATE = False
-		time.sleep(0.5)
+			time.sleep(1.0)
+		else:
+			res = new.getDistanceFrom(self.coordinate_now)
+			if abs(self.readImu()[0] - res['courseS2G']) < self.course_valid_threshold:
+				if  res['distance'] < self.stack_threshold:
+					self.STACK = True
+				else:
+					self.STACK = False	
+				self.coordinate_prev = self.coordinate_now
+				self.coordinate_now = new
+				with open(self.gpslog,'a') as f:
+					f.write(self.coordinate_now.toString()+'\n')
+				self.UPDATE = True
+			else:
+				if self.CHKCSE:
+					self.UPDATE = True
+				else:
+					self.UPDATE = False		
 		return self
 
 	def getGpsData(self):

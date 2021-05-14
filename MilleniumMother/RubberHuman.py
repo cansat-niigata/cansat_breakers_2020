@@ -1,6 +1,6 @@
 from Stream import Stream,Coordinate,dist
 from Gpio import Gpio,MotorControl,act,PID,HeatWire
-import Camera
+from Camera import Camera,Detecter
 import time
 
 
@@ -14,8 +14,8 @@ class Runback:
 	stdc = 150
 	turn_margin = 10
 
-	coordinate_goal = Coordinate(0,0,[0,0,0])
-	coordinates = [Coordinate(0,0,[0,0,0]),Coordinate(0,0,[0,0,0])]
+	coordinate_goal = Coordinate(0,0,(0,0,0))
+	coordinates = [Coordinate(0,0,(0,0,0)),Coordinate(0,0,(0,0,0))]
 	distance2goal = 0
 	course2goal = 0
 
@@ -23,7 +23,8 @@ class Runback:
 
 	starttime = 0
 
-
+	cam_size_x = 1024
+	cam_size_y = 768
 
 	def __init__(self,goal_lat=37.8658,goal_lng=138.9383,usecompass=False,usepid=True,usecamera=False):
 		self.starttime = time.time()
@@ -70,7 +71,8 @@ class Runback:
 
 		if usecamera:
 			self.usecamera = True
-			self.cam = Camera.Camera(768,512)
+			self.cam = Camera(self.cam_size_x,self.cam_size_y)
+			self.detecter = Detecter()
 			self.stream << 'Camera is initialized.' << dist.CFSOUT
 		else:
 			self.stream << 'Camera is disabled.' << dist.CFSOUT
@@ -88,7 +90,7 @@ class Runback:
 		self.stream << r"|____/ \__, |___/\__\___|_| |_| |_| |_|  \___| \_(_)_(_)___/ "
 		self.stream << r"       |___/                                                 " << dist.CFSOUT
 		
-		self.stream << "Welcome to Breakers' Runback Misson Program rev.1.87" << dist.CFSOUT
+		self.stream << "Welcome to Breakers' Runback Misson Program rev.1.89" << dist.CFSOUT
 
 	def moveForward(self,timeout=5):
 		self.stream << str(self.getTime()) + ":moveForward(timeout=" + str(timeout) + ")" << dist.CFSOUT
@@ -195,7 +197,7 @@ class Runback:
 		return self
 
 	def setGoal(self,lat,lng):
-		self.coordinate_goal = Coordinate(lat,lng,[0,0,0])
+		self.coordinate_goal = Coordinate(lat,lng,(0,0,0))
 		self.stream << "Goal is updated. newer:" + self.coordinate_goal.toString() << dist.CFSOUT  
 		return self
 
@@ -231,7 +233,7 @@ class Runback:
 		
 	def detectGoal(self):
 		if self.usecamera:
-			return self.cam.detectTargetv2()
+			return self.detecter.readImage(self.cam.getImage()).detectbyCascadev2()
 		else:
 			return 0
 
@@ -294,6 +296,49 @@ class Runback:
 		while self.updateGPS().distance2goal > 5:
 			self.movetoGoal()
 		self.stop().stream << "goal!" << dist.CFSOUT
+
+	def test2(self):
+		while self.updateGPS().distance2goal > 10:
+			self.movetoGoal()
+		self.stop().stream << "activating camera..." << dist.CFSOUT
+		flag = True
+		while flag:
+			res = self.detectGoal()
+			if res['length'] < 1:
+				self.turnto(30)
+				continue
+			if res['prop']['x'] < 0.4:
+				self.turnto(-10)
+				continue
+			elif res['prop']['x'] > 0.6:
+				self.turnto(10)
+				continue
+			else:
+				self.moveForward(3)
+				if self.updateGPS().distance2goal < 5:
+					self.stop().stream << 'goal!' << dist.CFSOUT
+					return True
+				else:
+					self.moveForward(2)
+					self.stop().stream << 'goal!' << dist.CFSOUT
+					return True
+
+	def test3(self):
+		self.drill()
+
+	def test4(self):
+		self.wire.purge()
+
+	def test5(self):
+		self.waitDrop()
+
+	def test6(self):
+		self.waitDrop().wire.purge()
+		self.moveForward()
+		self.updateGPS().drill()
+		self.test2()
+
+
 	
 
 
