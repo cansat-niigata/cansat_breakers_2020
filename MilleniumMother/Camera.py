@@ -5,24 +5,20 @@ import numpy
 
 class Camera:
 	serFlag = False
-	def __init__(self,Mx=1024,My=1024,roll=180,path='./img/image_',opath='./img/image_',format_='.png'):
+	def __init__(self,Mx=1024,My=1024,roll=180,format_='.png',dir_='./img/'):
 		self.Mx = Mx
 		self.My = My
 		self.camera = picamera.PiCamera()
 		self.camera.resolution = (Mx,My)
 		self.camera.rotation = roll
 		self.num = 0
-		self.path = path
-		self.opath = opath
+		self.dir = dir_
 		self.format = format_
-		self.filename = self.path+str(self.num)+self.format
-		self.outfilename = self.opath+str(self.num)+self.format
 
 	def getImage(self):
 		self.num = self.num+1
-		self.filename = self.path+str(self.num)+self.format
-		self.outfilename = self.opath+str(self.num)+self.format
-		self.camera.capture(self.filename)
+		self.filename ='image' + str(self.num) + self.format
+		self.camera.capture(self.dir + self.filename)
 		time.sleep(0.2)
 		return self.filename
 
@@ -30,13 +26,15 @@ class Detecter:
 	margin_x = 50
 	margin_y = 50
 
-	def __init__(self,cascadepath='./cascade_traffic_cone.xml'):
+
+	def __init__(self,cascadepath='./cascade_traffic_cone.xml',dir_='./img/'):
 		self.cascade = cv2.CascadeClassifier(cascadepath)
+		self.dir = dir_ 
 
 	def readImage(self,filename,x=1024,y=768):
 		self.filename = filename
-		self.img = cv2.imread(filename)
-		self.img_orig = cv2.imread(filename)
+		self.img = cv2.imread(self.dir+filename)
+		self.img_orig = cv2.imread(self.dir+filename)
 		if (x!=None)and(y!=None):
 			self.img = cv2.resize(self.img,(x,y))
 			self.img_orig = cv2.resize(self.img,(x,y))
@@ -86,7 +84,7 @@ class Detecter:
 			cv2.rectangle(img_mask,(x-self.margin_x,y-self.margin_y),(x+w+self.margin_x,y+h+self.margin_y),(255,255,255),-1)
 
 		self.img_masked = cv2.bitwise_and(self.img_orig,img_mask)
-		cv2.imwrite('masked_'+self.filename,self.img_masked)
+		cv2.imwrite(self.dir+'masked_'+self.filename,self.img_masked)
 		return self
 
 	def detectbyCascadev2(self):
@@ -109,16 +107,28 @@ class Detecter:
 				ave_y = ty - th/2
 				length += 1
 				cv2.rectangle(self.img,(x-self.margin_x+tx,y-self.margin_y+ty),(x-self.margin_x+tx+tw,y-self.margin_y+ty+th),(0,0,255),thickness=1)
-		cv2.imwrite('detected_'+self.filename,self.img)
-
-		return {
+		cv2.imwrite(self.dir+'detected_'+self.filename,self.img)
+		if length == 0:
+			return {
 			'length':length,
 			'ave':{
-				'x':ave_x/length,
-				'y':ave_y/length
+				'x':0,
+				'y':0
 			},
 			'prop':{
-				'x':ave_x/length/self.img.shape[0],
-				'y':ave_y/length/self.img.shape[1]
+				'x':0,
+				'y':0
 			}
 		}
+		else:
+			return {
+				'length':length,
+				'ave':{
+					'x':ave_x/length,
+					'y':ave_y/length
+				},
+				'prop':{
+					'x':ave_x/length/self.img.shape[0],
+					'y':ave_y/length/self.img.shape[1]
+				}
+			}
